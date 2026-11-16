@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capitaxio | Deposit</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+    --bg:#0b171b;
+    --panel:#13252c;
+    --green:#a5df43;
+    --text:#f4f7fa;
+    --muted:#9aadb5;
+    --border:#304750;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:var(--bg);color:var(--text)}
+.layout{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{
+    width:255px;background:var(--panel);padding:25px 16px;
+    position:fixed;top:0;bottom:0;left:0;overflow-y:auto;
+    border-right:1px solid var(--border);z-index:10;
+}
+.logo{font-size:25px;font-weight:bold;color:var(--green);margin:5px 10px 30px}
+.logo span{color:var(--text)}
+.menu-title{font-size:11px;color:var(--muted);margin:20px 10px 10px}
+.sidebar a{
+    display:block;text-decoration:none;color:var(--muted);
+    padding:12px 13px;border-radius:8px;margin:5px 0;font-size:14px;
+}
+.sidebar a:hover,.sidebar a.active{
+    background:#263c39;color:var(--green);
+}
+
+/* Main */
+.main{margin-left:255px;width:calc(100% - 255px);padding:28px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.topbar h2{font-size:23px}
+.menu-btn{
+    display:none;background:var(--panel);color:var(--green);
+    border:1px solid var(--border);padding:9px 13px;border-radius:7px;
+}
+.card{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:13px;padding:24px;margin-bottom:20px;
+}
+.card h3{font-size:18px;margin-bottom:8px}
+.muted{color:var(--muted);font-size:13px;line-height:1.6}
+
+/* Balance */
+.balance{
+    margin-top:18px;background:#1b3033;border:1px solid var(--border);
+    padding:18px;border-radius:10px;
+}
+.balance small{color:var(--muted)}
+.balance h2{color:var(--green);font-size:27px;margin-top:8px;overflow-wrap:anywhere}
+
+/* Methods */
+.methods{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:13px;margin-top:18px;
+}
+.method{
+    background:#1b3033;border:1px solid var(--border);
+    border-radius:10px;padding:18px 10px;text-align:center;
+    cursor:pointer;color:var(--text);transition:.2s;
+}
+.method:hover,.method.selected{
+    border-color:var(--green);background:#263c39;
+}
+.method strong{display:block;margin-bottom:7px;color:var(--green)}
+.method span{font-size:12px;color:var(--muted)}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{margin-top:16px}
+.field label{display:block;font-size:13px;margin-bottom:8px;color:var(--muted)}
+.field input,.field select,.field textarea{
+    width:100%;padding:13px;background:#0b171b;
+    border:1px solid var(--border);border-radius:8px;
+    color:var(--text);outline:none;font-size:14px;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+    border-color:var(--green);
+}
+.field textarea{resize:vertical;min-height:85px}
+.field input[type="file"]{padding:10px}
+.full{grid-column:1/-1}
+.submit-btn{
+    background:var(--green);color:#142017;border:0;
+    padding:14px 22px;border-radius:8px;font-weight:bold;
+    cursor:pointer;margin-top:20px;width:100%;font-size:15px;
+}
+.submit-btn:hover{opacity:.9}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed}
+.notice{
+    background:#263c39;border:1px solid var(--border);
+    padding:14px;border-radius:9px;margin-top:18px;
+    color:var(--muted);font-size:12px;line-height:1.7;
+}
+#result{
+    display:none;background:#263c39;border:1px solid var(--green);
+    padding:16px;border-radius:9px;margin-top:18px;
+    color:var(--text);line-height:1.7;font-size:14px;
+}
+#result.error{border-color:#ff9b9b;color:#ff9b9b}
+.payment-info{
+    background:#1b3033;border:1px solid var(--border);
+    padding:16px;border-radius:9px;margin-top:18px;
+    display:none;line-height:1.8;font-size:13px;
+}
+.payment-info strong{color:var(--green)}
+.account-box{margin-top:10px;padding:12px;border:1px dashed var(--border);border-radius:8px;overflow-wrap:anywhere}
+
+@media(max-width:850px){
+    .sidebar{transform:translateX(-100%);transition:.25s}
+    .sidebar.open{transform:translateX(0)}
+    .main{margin-left:0;width:100%;padding:18px}
+    .menu-btn{display:block}
+}
+@media(max-width:550px){
+    .methods{grid-template-columns:1fr}
+    .form-grid{grid-template-columns:1fr}
+    .full{grid-column:auto}
+    .card{padding:18px}
+}
+</style>
+</head>
+
+<body style="visibility:hidden">
+<div class="layout">
+
+<aside class="sidebar" id="sidebar">
+    <div class="logo">C<span>apitaxio</span></div>
+
+    <div class="menu-title">MAIN MENU</div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="profile.html">Profile Setting</a>
+    <a href="deposit.html" class="active">Deposit</a>
+    <a href="deposit-history.html">Deposit History</a>
+    <a href="withdrawal.html">Withdraw</a>
+    <a href="withdraw-history.html">Withdraw History</a>
+    <a href="transactions.html">Transactions</a>
+    <a href="team.html">My Team</a>
+    <a href="my-plan.html">My Plan</a>
+
+    <div class="menu-title">ACCOUNT</div>
+    <a href="app-download.html">App Download</a>
+    <a href="verify.html">Verify Account</a>
+    <a href="password-change.html">Password Change</a>
+    <a href="#" id="logoutLink">Logout</a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div>
+            <button class="menu-btn" id="menuBtn">☰ Menu</button>
+            <h2 style="margin-top:10px">Deposit Funds</h2>
+            <p class="muted">Add funds to your Capitaxio account</p>
+        </div>
+    </div>
+
+    <section class="card">
+        <h3>Account Balance</h3>
+        <p class="muted">Your current account balance</p>
+        <div class="balance">
+            <small>Available Balance</small>
+            <h2 id="balanceText">PKR 0.00</h2>
+        </div>
+    </section>
+
+    <section class="card">
+        <h3>Select Payment Method</h3>
+        <p class="muted">Choose your preferred deposit method.</p>
+
+        <div class="methods">
+            <div class="method selected" data-method="JazzCash">
+                <strong>JazzCash</strong>
+                <span>Mobile Wallet</span>
+            </div>
+
+            <div class="method" data-method="Easypaisa">
+                <strong>Easypaisa</strong>
+                <span>Mobile Wallet</span>
+            </div>
+
+            <div class="method" data-method="Bank Transfer">
+                <strong>All Banks</strong>
+                <span>Bank Transfer</span>
+            </div>
+        </div>
+
+        <div class="payment-info" id="paymentInfo">
+            <strong>Payment Instructions</strong>
+            <div id="paymentText"></div>
+            <p class="muted" style="margin-top:10px">
+                Sirf yahan likhe hue official account par paise bhejein.
+                Kisi aur ke kehne par kisi aur account par payment na karein.
+            </p>
+        </div>
+    </section>
+
+    <section class="card">
+        <h3>Deposit Details</h3>
+        <p class="muted">Enter your payment details below.</p>
+
+        <form id="depositForm">
+
+            <div class="form-grid">
+
+                <div class="field full">
+                    <label>Payment Method</label>
+                    <input type="text" id="method" value="JazzCash" readonly>
+                </div>
+
+                <div class="field full">
+                    <label>Deposit Amount (PKR)</label>
+                    <input type="number" id="amount" min="1" max="10000000" step="1"
+                           placeholder="Enter deposit amount" required>
+                </div>
+
+                <div class="field full">
+                    <label>Your Account Title</label>
+                    <input type="text" id="accountTitle" maxlength="100"
+                           placeholder="Enter account holder name" required>
+                </div>
+
+                <div class="field full">
+                    <label>Sender Mobile / Bank Account Number</label>
+                    <input type="text" id="senderAccount" maxlength="60"
+                           placeholder="Enter your sending account number" required>
+                </div>
+
+                <div class="field full">
+                    <label>Transaction ID / Reference Number</label>
+                    <input type="text" id="transactionId" maxlength="80"
+                           placeholder="Enter transaction reference" required>
+                </div>
+
+                <div class="field full">
+                    <label>Payment Proof (Screenshot)</label>
+                    <input type="file" id="proof"
+                           accept="image/png,image/jpeg,image/webp" required>
+                    <p class="muted" style="margin-top:7px">
+                        Allowed formats: JPG, PNG, WEBP. Maximum size: 5 MB.
+                    </p>
+                </div>
+
+                <div class="field full">
+                    <label>Additional Note (Optional)</label>
+                    <textarea id="note" maxlength="500"
+                              placeholder="Write any additional information"></textarea>
+                </div>
+
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Submit Deposit Request
+            </button>
+        </form>
+
+        <div id="result" role="status" aria-live="polite"></div>
+
+        <div class="notice">
+            <strong style="color:var(--green)">Important:</strong><br>
+            Aap ki request admin review karega. Approve hone par hi balance barhega.
+            Galat ya jali slip ya reference par account band kiya ja sakta hai.
+            Kisi ko apna PIN, password ya OTP na batayen.
+        </div>
+    </section>
+
+    <p class="muted" style="text-align:center;margin:25px 0">
+        © 2026 Capitaxio. All Rights Reserved.
+    </p>
+
+</main>
+</div>
+
+<script>
+const SUPABASE_URL = "https://zwffgoenruzcctkyptjg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6qL9pLwCjdfLAt6ftaSSTQ_SvWff4Ar";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const LOGIN_PAGE = "index.html";
+const BUCKET = "deposit-proofs";
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const EXTENSIONS = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+
+let selectedMethod = "JazzCash";
+let currentProfile = null;
+let currentAuthId = null;
+let paymentAccounts = [];
+
+document.getElementById("menuBtn").addEventListener("click", function () {
+    document.getElementById("sidebar").classList.toggle("open");
+});
+
+document.getElementById("logoutLink").addEventListener("click", async function (e) {
+    e.preventDefault();
+    await db.auth.signOut();
+    window.location.href = LOGIN_PAGE;
+});
+
+function money(value) {
+    return "PKR " + Number(value || 0).toLocaleString("en-PK", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function showResult(text, isError) {
+    const result = document.getElementById("result");
+    result.textContent = text;
+    result.className = isError ? "error" : "";
+    result.style.display = "block";
+    result.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// ---------- Login aur profile ----------
+async function loadProfile(user) {
+    const cols = "id, full_name, balance, status";
+
+    let { data: profile, error } = await db
+        .from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+    if (error) throw error;
+
+    if (!profile) {
+        const meta = user.user_metadata || {};
+        const { error: rpcError } = await db.rpc("complete_signup", {
+            p_full_name: meta.full_name || "",
+            p_mobile: meta.mobile || "",
+            p_ref: meta.ref || ""
+        });
+        if (rpcError) throw rpcError;
+
+        const again = await db.from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+        if (again.error) throw again.error;
+        profile = again.data;
+    }
+
+    return profile;
+}
+
+async function guard() {
+    const { data: s } = await db.auth.getSession();
+    if (!s.session) { window.location.replace(LOGIN_PAGE); return false; }
+
+    try {
+        currentProfile = await loadProfile(s.session.user);
+    } catch (err) {
+        console.error(err);
+        await db.auth.signOut();
+        window.location.replace(LOGIN_PAGE);
+        return false;
+    }
+
+    if (!currentProfile || String(currentProfile.status || "").toLowerCase() === "banned") {
+        await db.auth.signOut();
+        window.location.replace(LOGIN_PAGE);
+        return false;
+    }
+
+    currentAuthId = s.session.user.id;
+    document.body.style.visibility = "visible";
+    return true;
+}
+
+// ---------- Payment accounts (admin ne jo set kiye) ----------
+async function loadPaymentAccounts() {
+    const { data, error } = await db
+        .from("payment_accounts")
+        .select("method, account_title, account_number, instructions, min_amount, max_amount")
+        .eq("is_active", true);
+
+    paymentAccounts = error ? [] : (data || []);
+    renderPaymentInfo();
+}
+
+function addLine(parent, labelText, value) {
+    if (!value) return;
+    const line = document.createElement("div");
+    const b = document.createElement("strong");
+    b.textContent = labelText + " ";
+    line.appendChild(b);
+    line.appendChild(document.createTextNode(value));
+    parent.appendChild(line);
+}
+
+function renderPaymentInfo() {
+    const info = document.getElementById("paymentInfo");
+    const box = document.getElementById("paymentText");
+    box.textContent = "";
+    info.style.display = "block";
+
+    const matches = paymentAccounts.filter(function (a) {
+        return String(a.method || "").toLowerCase() === selectedMethod.toLowerCase();
+    });
+
+    if (matches.length === 0) {
+        box.textContent = selectedMethod + " ke account ki tafseelat abhi set nahi hui. Is waqt payment na bhejein.";
+        return;
+    }
+
+    matches.forEach(function (a) {
+        const item = document.createElement("div");
+        item.className = "account-box";
+        addLine(item, "Account Title:", a.account_title);
+        addLine(item, "Account Number:", a.account_number);
+        addLine(item, "Note:", a.instructions);
+        addLine(item, "Limit:", "Rs. " + Number(a.min_amount || 0).toLocaleString("en-PK") +
+                " se Rs. " + Number(a.max_amount || 0).toLocaleString("en-PK"));
+        box.appendChild(item);
+    });
+}
+
+document.querySelectorAll(".method").forEach(function (element) {
+    element.addEventListener("click", function () {
+        document.querySelectorAll(".method").forEach(function (item) {
+            item.classList.remove("selected");
+        });
+        element.classList.add("selected");
+        selectedMethod = element.dataset.method;
+        document.getElementById("method").value = selectedMethod;
+        renderPaymentInfo();
+    });
+});
+
+// ---------- Deposit request bhejna ----------
+document.getElementById("depositForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const amount = Number(document.getElementById("amount").value);
+    const title = document.getElementById("accountTitle").value.trim();
+    const sender = document.getElementById("senderAccount").value.trim();
+    const reference = document.getElementById("transactionId").value.trim();
+    const note = document.getElementById("note").value.trim();
+    const file = document.getElementById("proof").files[0];
+
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 10000000) {
+        showResult("Sahi deposit amount likhein.", true);
+        return;
+    }
+
+    const methodAccounts = paymentAccounts.filter(function (a) {
+        return String(a.method || "").toLowerCase() === selectedMethod.toLowerCase();
+    });
+
+    if (methodAccounts.length === 0) {
+        showResult(selectedMethod + " abhi available nahi hai. Koi aur method chunein.", true);
+        return;
+    }
+
+    const allowed = methodAccounts.some(function (a) {
+        return amount >= Number(a.min_amount || 0) && amount <= Number(a.max_amount || 10000000);
+    });
+
+    if (!allowed) {
+        const a = methodAccounts[0];
+        showResult("Is method ke liye amount Rs. " + Number(a.min_amount || 0).toLocaleString("en-PK") +
+            " se Rs. " + Number(a.max_amount || 0).toLocaleString("en-PK") + " ke darmiyan hona chahiye.", true);
+        return;
+    }
+
+    if (!title || !sender || !reference || !file) {
+        showResult("Tamam zaroori khane bharein.", true);
+        return;
+    }
+
+    if (!EXTENSIONS[file.type]) {
+        showResult("Sirf JPG, PNG ya WEBP image upload karein.", true);
+        return;
+    }
+
+    if (file.size > MAX_FILE_BYTES) {
+        showResult("Image 5 MB se chhoti honi chahiye.", true);
+        return;
+    }
+
+    const button = document.getElementById("submitBtn");
+    button.disabled = true;
+    button.textContent = "Submitting...";
+
+    let uploadedPath = null;
+
+    try {
+        // 1) Slip private bucket mein upload (apne folder mein)
+        const rand = crypto.getRandomValues(new Uint32Array(2)).join("");
+        uploadedPath = currentAuthId + "/" + Date.now() + "-" + rand + "." + EXTENSIONS[file.type];
+
+        const { error: uploadError } = await db.storage
+            .from(BUCKET)
+            .upload(uploadedPath, file, { contentType: file.type, upsert: false });
+
+        if (uploadError) throw uploadError;
+
+        const proofUrl = SUPABASE_URL + "/storage/v1/object/authenticated/" + BUCKET + "/" + uploadedPath;
+
+        // 2) Deposit request (status hamesha pending se shuru hota hai)
+        const { error: insertError } = await db.from("deposits").insert({
+            user_id: currentProfile.id,
+            amount: amount,
+            payment_method: selectedMethod,
+            transaction_reference: reference,
+            proof_url: proofUrl,
+            sender_account_title: title,
+            sender_account_number: sender,
+            note: note || null,
+            status: "pending"
+        });
+
+        if (insertError) throw insertError;
+
+        document.getElementById("depositForm").reset();
+        document.getElementById("method").value = selectedMethod;
+        showResult(
+            "Deposit request submit ho gayi. Amount: " + money(amount) +
+            ", Reference: " + reference +
+            ". Admin review ke baad balance barh jayega. Status Deposit History mein dekhein.",
+            false
+        );
+    } catch (err) {
+        console.error(err);
+        if (uploadedPath) {
+            await db.storage.from(BUCKET).remove([uploadedPath]);
+        }
+        showResult("Request submit nahi ho saki: " + err.message, true);
+    } finally {
+        button.disabled = false;
+        button.textContent = "Submit Deposit Request";
+    }
+});
+
+guard().then(function (ok) {
+    if (!ok) return;
+    document.getElementById("balanceText").textContent = money(currentProfile.balance);
+    renderPaymentInfo();
+    loadPaymentAccounts();
+});
+</script>
+</body>
+</html>

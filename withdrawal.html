@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capitaxio | Withdraw</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+    --bg:#0b171b;
+    --panel:#13252c;
+    --green:#a5df43;
+    --text:#f4f7fa;
+    --muted:#9aadb5;
+    --border:#304750;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:var(--bg);color:var(--text)}
+.layout{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{
+    width:255px;background:var(--panel);padding:25px 16px;
+    position:fixed;top:0;bottom:0;left:0;overflow-y:auto;
+    border-right:1px solid var(--border);z-index:10;
+}
+.logo{font-size:25px;font-weight:bold;color:var(--green);margin:5px 10px 30px}
+.logo span{color:var(--text)}
+.menu-title{font-size:11px;color:var(--muted);margin:20px 10px 10px}
+.sidebar a{
+    display:block;text-decoration:none;color:var(--muted);
+    padding:12px 13px;border-radius:8px;margin:5px 0;font-size:14px;
+}
+.sidebar a:hover,.sidebar a.active{
+    background:#263c39;color:var(--green);
+}
+.main{margin-left:255px;width:calc(100% - 255px);padding:28px}
+
+/* Header */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.topbar h2{font-size:23px}
+.menu-btn{
+    display:none;background:var(--panel);color:var(--green);
+    border:1px solid var(--border);padding:9px 13px;border-radius:7px;
+}
+
+/* Content */
+.card{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:13px;padding:24px;margin-bottom:20px;
+}
+.card h3{font-size:18px;margin-bottom:8px}
+.muted{color:var(--muted);font-size:13px;line-height:1.6}
+.balance{
+    margin-top:18px;background:#1b3033;border:1px solid var(--border);
+    padding:18px;border-radius:10px;
+}
+.balance small{color:var(--muted)}
+.balance h2{color:var(--green);font-size:27px;margin-top:8px;overflow-wrap:anywhere}
+
+.methods{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:18px;
+}
+.method{
+    background:#1b3033;border:1px solid var(--border);
+    border-radius:10px;padding:18px 10px;text-align:center;
+    cursor:pointer;color:var(--text);transition:.2s;
+}
+.method:hover,.method.selected{
+    border-color:var(--green);background:#263c39;
+}
+.method strong{display:block;margin-bottom:7px;color:var(--green)}
+.method span{font-size:12px;color:var(--muted)}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{margin-top:16px}
+.field label{display:block;font-size:13px;margin-bottom:8px;color:var(--muted)}
+.field input,.field select,.field textarea{
+    width:100%;padding:13px;background:#0b171b;
+    border:1px solid var(--border);border-radius:8px;
+    color:var(--text);outline:none;font-size:14px;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+    border-color:var(--green);
+}
+.field textarea{resize:vertical;min-height:85px}
+.full{grid-column:1/-1}
+
+.submit-btn{
+    background:var(--green);color:#142017;border:0;
+    padding:14px 22px;border-radius:8px;font-weight:bold;
+    cursor:pointer;margin-top:20px;width:100%;font-size:15px;
+}
+.submit-btn:hover{opacity:.9}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed}
+.notice{
+    background:#263c39;border:1px solid var(--border);
+    padding:14px;border-radius:9px;margin-top:18px;
+    color:var(--muted);font-size:12px;line-height:1.7;
+}
+#result{
+    display:none;background:#263c39;border:1px solid var(--green);
+    padding:16px;border-radius:9px;margin-top:18px;
+    color:var(--text);line-height:1.7;font-size:14px;
+}
+#result.error{border-color:#ff9b9b;color:#ff9b9b}
+@media(max-width:850px){
+    .sidebar{transform:translateX(-100%);transition:.25s}
+    .sidebar.open{transform:translateX(0)}
+    .main{margin-left:0;width:100%;padding:18px}
+    .menu-btn{display:block}
+}
+@media(max-width:550px){
+    .methods{grid-template-columns:1fr}
+    .form-grid{grid-template-columns:1fr}
+    .full{grid-column:auto}
+    .card{padding:18px}
+}
+</style>
+</head>
+
+<body style="visibility:hidden">
+<div class="layout">
+
+<aside class="sidebar" id="sidebar">
+    <div class="logo">C<span>apitaxio</span></div>
+
+    <div class="menu-title">MAIN MENU</div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="profile.html">Profile Setting</a>
+    <a href="deposit.html">Deposit</a>
+    <a href="deposit-history.html">Deposit History</a>
+    <a href="withdrawal.html" class="active">Withdraw</a>
+    <a href="withdraw-history.html">Withdraw History</a>
+    <a href="transactions.html">Transactions</a>
+    <a href="team.html">My Team</a>
+    <a href="my-plan.html">My Plan</a>
+
+    <div class="menu-title">ACCOUNT</div>
+    <a href="app-download.html">App Download</a>
+    <a href="verify.html">Verify Account</a>
+    <a href="password-change.html">Password Change</a>
+    <a href="#" id="logoutLink">Logout</a>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <div>
+            <button class="menu-btn" id="menuBtn">☰ Menu</button>
+            <h2 style="margin-top:10px">Withdraw Funds</h2>
+            <p class="muted">Request a withdrawal from your account</p>
+        </div>
+    </div>
+
+    <section class="card">
+        <h3>Available Balance</h3>
+        <p class="muted">Your current available balance</p>
+        <div class="balance">
+            <small>Available Balance</small>
+            <h2 id="balanceText">PKR 0.00</h2>
+        </div>
+    </section>
+
+    <section class="card">
+        <h3>Select Withdrawal Method</h3>
+        <p class="muted">Choose where you want to receive your payment.</p>
+
+        <div class="methods">
+            <div class="method selected" data-method="JazzCash">
+                <strong>JazzCash</strong>
+                <span>Mobile Wallet</span>
+            </div>
+
+            <div class="method" data-method="Easypaisa">
+                <strong>Easypaisa</strong>
+                <span>Mobile Wallet</span>
+            </div>
+
+            <div class="method" data-method="Bank Transfer">
+                <strong>All Banks</strong>
+                <span>Bank Account</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h3>Withdrawal Details</h3>
+        <p class="muted">Enter your payment information carefully.</p>
+
+        <form id="withdrawForm">
+            <div class="form-grid">
+
+                <div class="field full">
+                    <label>Withdrawal Method</label>
+                    <input type="text" id="method" value="JazzCash" readonly>
+                </div>
+
+                <div class="field full">
+                    <label>Withdrawal Amount (PKR)</label>
+                    <input type="number" id="amount" min="1" max="10000000" step="1"
+                           placeholder="Enter amount" required>
+                </div>
+
+                <div class="field full">
+                    <label>Account Title</label>
+                    <input type="text" id="accountTitle" maxlength="100"
+                           placeholder="Enter account holder name" required>
+                </div>
+
+                <div class="field full" id="mobileField">
+                    <label>Mobile / Account Number</label>
+                    <input type="text" id="accountNumber" maxlength="11"
+                           placeholder="03XXXXXXXXX" required>
+                </div>
+
+                <div class="field full" id="bankField" style="display:none">
+                    <label>Bank Name</label>
+                    <select id="bankName" autocomplete="off">
+                        <option value="">Select Bank</option>
+                        <option>HBL</option>
+                        <option>UBL</option>
+                        <option>MCB Bank</option>
+                        <option>Allied Bank</option>
+                        <option>Bank Alfalah</option>
+                        <option>Meezan Bank</option>
+                        <option>Bank of Punjab</option>
+                        <option>National Bank of Pakistan</option>
+                        <option>Faysal Bank</option>
+                        <option>Other Bank</option>
+                    </select>
+
+                    <div class="field">
+                        <label>IBAN / Account Number</label>
+                        <input type="text" id="iban" maxlength="40"
+                               placeholder="Enter IBAN or account number">
+                    </div>
+                </div>
+
+                <div class="field full">
+                    <label>Note (Optional)</label>
+                    <textarea id="note" maxlength="500" placeholder="Any additional information"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Submit Withdrawal Request
+            </button>
+        </form>
+
+        <div id="result" role="status" aria-live="polite"></div>
+
+        <div class="notice">
+            <strong style="color:var(--green)">Important:</strong><br>
+            Apne account ki tafseelat dobara check karein, galat details par bheji hui raqam wapas nahi aati.
+            Aap ki request admin review karega, aur approve hone par hi balance se raqam kategi.
+            Withdrawal ke liye KYC (Verify Account) mukammal hona zaroori ho sakta hai.
+            Kisi ko apna PIN, password ya OTP na batayen.
+        </div>
+    </section>
+
+    <p class="muted" style="text-align:center;margin:25px 0">
+        © 2026 Capitaxio. All Rights Reserved.
+    </p>
+</main>
+</div>
+
+<script>
+const SUPABASE_URL = "https://zwffgoenruzcctkyptjg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6qL9pLwCjdfLAt6ftaSSTQ_SvWff4Ar";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const LOGIN_PAGE = "index.html";
+
+let selectedMethod = "JazzCash";
+let currentProfile = null;
+
+document.getElementById("menuBtn").addEventListener("click", function () {
+    document.getElementById("sidebar").classList.toggle("open");
+});
+
+document.getElementById("logoutLink").addEventListener("click", async function (e) {
+    e.preventDefault();
+    await db.auth.signOut();
+    window.location.href = LOGIN_PAGE;
+});
+
+function money(value) {
+    return "PKR " + Number(value || 0).toLocaleString("en-PK", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function showResult(text, isError) {
+    const result = document.getElementById("result");
+    result.textContent = text;
+    result.className = isError ? "error" : "";
+    result.style.display = "block";
+    result.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// ---------- Login aur profile ----------
+async function loadProfile(user) {
+    const cols = "id, full_name, balance, status";
+
+    let { data: profile, error } = await db
+        .from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+    if (error) throw error;
+
+    if (!profile) {
+        const meta = user.user_metadata || {};
+        const { error: rpcError } = await db.rpc("complete_signup", {
+            p_full_name: meta.full_name || "",
+            p_mobile: meta.mobile || "",
+            p_ref: meta.ref || ""
+        });
+        if (rpcError) throw rpcError;
+
+        const again = await db.from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+        if (again.error) throw again.error;
+        profile = again.data;
+    }
+
+    return profile;
+}
+
+async function guard() {
+    const { data: s } = await db.auth.getSession();
+    if (!s.session) { window.location.replace(LOGIN_PAGE); return false; }
+
+    try {
+        currentProfile = await loadProfile(s.session.user);
+    } catch (err) {
+        console.error(err);
+        await db.auth.signOut();
+        window.location.replace(LOGIN_PAGE);
+        return false;
+    }
+
+    if (!currentProfile || String(currentProfile.status || "").toLowerCase() === "banned") {
+        await db.auth.signOut();
+        window.location.replace(LOGIN_PAGE);
+        return false;
+    }
+
+    document.body.style.visibility = "visible";
+    return true;
+}
+
+// ---------- Method chunna ----------
+document.querySelectorAll(".method").forEach(function (element) {
+    element.addEventListener("click", function () {
+        document.querySelectorAll(".method").forEach(function (item) {
+            item.classList.remove("selected");
+        });
+
+        element.classList.add("selected");
+        selectedMethod = element.dataset.method;
+        document.getElementById("method").value = selectedMethod;
+
+        const isBank = selectedMethod === "Bank Transfer";
+
+        document.getElementById("bankField").style.display = isBank ? "block" : "none";
+        document.getElementById("mobileField").style.display = isBank ? "none" : "block";
+
+        document.getElementById("accountNumber").required = !isBank;
+        document.getElementById("bankName").required = isBank;
+        document.getElementById("iban").required = isBank;
+    });
+});
+
+// ---------- Request bhejna (database function ke zariye) ----------
+document.getElementById("withdrawForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const amount = Number(document.getElementById("amount").value);
+    const title = document.getElementById("accountTitle").value.trim();
+    const account = document.getElementById("accountNumber").value.trim();
+    const bank = document.getElementById("bankName").value;
+    const iban = document.getElementById("iban").value.trim();
+    const note = document.getElementById("note").value.trim();
+    const isBank = selectedMethod === "Bank Transfer";
+
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 10000000) {
+        showResult("Sahi withdrawal amount likhein.", true);
+        return;
+    }
+
+    if (!title) {
+        showResult("Account title likhein.", true);
+        return;
+    }
+
+    if (isBank && (!bank || !iban)) {
+        showResult("Bank ka naam aur IBAN / account number likhein.", true);
+        return;
+    }
+
+    if (!isBank && !/^03\d{9}$/.test(account)) {
+        showResult("Mobile number 03XXXXXXXXX (11 digits) ki shakal mein likhein.", true);
+        return;
+    }
+
+    const paymentAccount = isBank ? iban : account;
+
+    const ok = confirm(
+        money(amount) + " ki withdrawal request " + selectedMethod + " par bhejni hai?\n\n" +
+        "Account title: " + title + "\n" +
+        (isBank ? "Bank: " + bank + "\nIBAN: " : "Number: ") + paymentAccount +
+        "\n\nGalat details par raqam wapas nahi aati."
+    );
+    if (!ok) return;
+
+    const button = document.getElementById("submitBtn");
+    button.disabled = true;
+    button.textContent = "Submitting...";
+
+    try {
+        const { error } = await db.rpc("request_withdrawal", {
+            p_method: selectedMethod,
+            p_amount: amount,
+            p_title: title,
+            p_account: paymentAccount,
+            p_bank: isBank ? bank : "",
+            p_note: note
+        });
+
+        if (error) throw error;
+
+        document.getElementById("withdrawForm").reset();
+        document.getElementById("method").value = selectedMethod;
+        showResult(
+            "Withdrawal request bhej di gayi. Amount: " + money(amount) +
+            ". Admin review ke baad approve karega. Status Withdraw History mein dekhein.",
+            false
+        );
+    } catch (err) {
+        console.error(err);
+        showResult(err.message || "Request nahi ja saki.", true);
+    } finally {
+        button.disabled = false;
+        button.textContent = "Submit Withdrawal Request";
+    }
+});
+
+guard().then(function (ok) {
+    if (!ok) return;
+    document.getElementById("balanceText").textContent = money(currentProfile.balance);
+});
+</script>
+</body>
+</html>

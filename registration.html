@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b171b">
+  <title>Capitaxio | Create Account</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0b171b;
+      --panel: #13252c;
+      --green: #a5df43;
+      --text: #f4f7fa;
+      --muted: #9aadb5;
+      --border: #304750;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(ellipse at top, #1b3834 0%, transparent 48%), var(--bg);
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+    }
+
+    .wrapper { width: 100%; max-width: 450px; }
+    .brand { text-align: center; margin-bottom: 25px; }
+
+    .brand-icon {
+      width: 58px; height: 58px; margin: 0 auto 12px;
+      display: grid; place-items: center;
+      border-radius: 17px;
+      background: linear-gradient(145deg, #b7f45d, #76ad23);
+      color: #102019; font-size: 28px; font-weight: 900;
+    }
+
+    .brand h1 { font-size: 29px; letter-spacing: 1px; }
+    .brand h1 span { color: var(--green); }
+    .brand p { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+    .card {
+      padding: 30px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: 0 20px 70px #00000035;
+    }
+
+    .heading { margin-bottom: 23px; }
+    .heading h2 { font-size: 24px; margin-bottom: 9px; }
+    .heading p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+    .field { margin-bottom: 17px; }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 9px; }
+
+    input {
+      width: 100%; padding: 14px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: #0d1c22; color: var(--text);
+      font-size: 15px; outline: none;
+    }
+
+    input:focus { border-color: var(--green); }
+    input::placeholder { color: #71858d; }
+
+    .terms {
+      display: flex; align-items: flex-start; gap: 10px;
+      color: var(--muted); font-size: 13px; line-height: 1.6; margin: 20px 0;
+    }
+
+    .terms input { width: 17px; height: 17px; margin-top: 2px; accent-color: var(--green); flex-shrink: 0; }
+    .terms label { margin: 0; font-weight: normal; }
+
+    .submit-btn {
+      width: 100%; padding: 15px; border: none; border-radius: 10px;
+      background: var(--green); color: #13210e;
+      font-size: 16px; font-weight: 800; cursor: pointer;
+    }
+
+    .submit-btn:hover { background: #baf66a; }
+    .submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+    #message { margin-top: 15px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+
+    .login-link {
+      text-align: center; margin-top: 23px; padding-top: 21px;
+      border-top: 1px solid var(--border);
+      color: var(--muted); font-size: 14px; line-height: 1.8;
+    }
+
+    a { color: var(--green); text-decoration: none; font-weight: bold; }
+    footer { text-align: center; color: #72858d; font-size: 12px; margin-top: 22px; }
+
+    @media (max-width: 420px) {
+      body { padding: 16px; }
+      .card { padding: 23px 19px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrapper">
+
+    <header class="brand">
+      <div class="brand-icon" aria-hidden="true">C</div>
+      <h1>Capita<span>xio</span></h1>
+      <p>Create your account to get started.</p>
+    </header>
+
+    <section class="card">
+      <div class="heading">
+        <h2>Create Account</h2>
+        <p>Enter your details below to register.</p>
+      </div>
+
+      <form id="registerForm">
+        <div class="field">
+          <label for="fullName">Full name</label>
+          <input type="text" id="fullName" placeholder="Enter your full name" autocomplete="name" maxlength="100" required>
+        </div>
+
+        <div class="field">
+          <label for="email">Email address</label>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Create password</label>
+          <input type="password" id="password" placeholder="At least 8 characters" autocomplete="new-password" minlength="8" required>
+        </div>
+
+        <div class="field">
+          <label for="confirmPassword">Confirm password</label>
+          <input type="password" id="confirmPassword" placeholder="Enter password again" autocomplete="new-password" minlength="8" required>
+        </div>
+
+        <div class="terms">
+          <input type="checkbox" id="terms" required>
+          <label for="terms">
+            I agree to the website's
+            <a href="#" id="termsLink">terms and conditions</a>.
+          </label>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          Create Account →
+        </button>
+
+        <p id="message" role="status" aria-live="polite"></p>
+      </form>
+
+      <div class="login-link">
+        Already have an account?<br>
+        <a href="index.html">Back to Login →</a>
+      </div>
+    </section>
+
+    <footer>
+      &copy; 2026 Capitaxio. All rights reserved.
+    </footer>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://zwffgoenruzcctkyptjg.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_6qL9pLwCjdfLAt6ftaSSTQ_SvWff4Ar";
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Registration ke baad user kis page par jaye (agar email confirm ki zaroorat na ho)
+    const DASHBOARD_PAGE = "dashboard.html";
+
+    const form = document.getElementById("registerForm");
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirmPassword");
+    const message = document.getElementById("message");
+    const submitBtn = document.getElementById("submitBtn");
+
+    // Referral link: register.html?ref=ABCD1234
+    const refCode = (new URLSearchParams(window.location.search).get("ref") || "")
+      .trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20);
+
+    function showMessage(text, isError) {
+      message.style.color = isError ? "#ff8b8b" : "#a5df43";
+      message.textContent = text;
+    }
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      if (password.value !== confirmPassword.value) {
+        showMessage("Passwords match nahi karte. Dono passwords check karo.", true);
+        confirmPassword.focus();
+        return;
+      }
+
+      const fullName = document.getElementById("fullName").value.trim();
+      const email = document.getElementById("email").value.trim();
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Creating account...";
+      showMessage("", false);
+
+      try {
+        const { data, error } = await db.auth.signUp({
+          email: email,
+          password: password.value,
+          options: { data: { full_name: fullName, ref: refCode } }
+        });
+
+        if (error) {
+          const text = String(error.message || "").toLowerCase();
+          if (text.includes("already")) {
+            showMessage("Ye email pehle se registered hai. Login karein.", true);
+          } else if (text.includes("password")) {
+            showMessage("Password kamzor hai. Kam az kam 8 characters, harf aur number istemal karein.", true);
+          } else {
+            showMessage("Account nahi ban saka: " + error.message, true);
+          }
+          return;
+        }
+
+        // Pehle se maujood email par Supabase khali identities wapas deta hai
+        if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+          showMessage("Ye email pehle se registered hai. Login karein.", true);
+          return;
+        }
+
+        if (data.session) {
+          // Email confirmation band ho to foran profile ban jati hai
+          const { error: profileError } = await db.rpc("complete_signup", {
+            p_full_name: fullName,
+            p_mobile: "",
+            p_ref: refCode
+          });
+
+          if (profileError) throw profileError;
+
+          showMessage("Account ban gaya. Dashboard khul raha hai...", false);
+          window.location.href = DASHBOARD_PAGE;
+        } else {
+          showMessage("Account ban gaya. Aap ki email par confirmation link bheja gaya hai. Link kholne ke baad login karein (spam bhi check karein).", false);
+          form.reset();
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage("Profile nahi ban saki: " + err.message, true);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Create Account →";
+      }
+    });
+
+    document.getElementById("termsLink").addEventListener("click", function (event) {
+      event.preventDefault();
+      message.style.color = "#a5df43";
+      message.textContent = "Terms and conditions ka page hum baad mein add karenge.";
+    });
+  </script>
+</body>
+</html>

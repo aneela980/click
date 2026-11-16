@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b171b">
+  <title>Capitaxio | Deposit History</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0b171b;
+      --panel: #13252c;
+      --panel2: #1b323b;
+      --green: #a5df43;
+      --text: #f4f7fa;
+      --muted: #9aadb5;
+      --border: #304750;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: 245px;
+      padding: 25px 16px;
+      background: #101f25;
+      border-right: 1px solid #526d34;
+      overflow-y: auto;
+      z-index: 10;
+      transition: transform .25s;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 5px 8px 24px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--green);
+      color: #102019;
+      font-size: 23px;
+    }
+
+    .brand span:last-child {
+      color: var(--green);
+    }
+
+    .menu-label {
+      margin: 22px 10px 12px;
+      color: #758b92;
+      font-size: 11px;
+      letter-spacing: 1.4px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px;
+      margin-bottom: 7px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      color: #c6d2d7;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: #263b2a;
+      color: var(--green);
+      border-color: #526d34;
+    }
+
+    .main {
+      margin-left: 245px;
+      padding: 30px;
+      max-width: 1500px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-size: 27px;
+      margin-bottom: 9px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .menu-toggle {
+      display: none;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: var(--panel);
+      color: var(--green);
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      padding: 23px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      min-width: 0;
+    }
+
+    .card-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .card-value {
+      font-size: 27px;
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .card-note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    .green {
+      color: var(--green);
+    }
+
+    .history-card {
+      padding: 24px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+    }
+
+    .history-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+
+    h2 {
+      font-size: 19px;
+      margin-bottom: 7px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    input, select {
+      padding: 11px 12px;
+      background: #0d1c22;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      outline: none;
+      font: inherit;
+      font-size: 13px;
+      max-width: 100%;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--green);
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 620px;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      padding: 15px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      background: #0e1d23;
+    }
+
+    td {
+      padding: 17px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+      background: #26363c;
+      color: var(--muted);
+    }
+
+    .badge.approved { background: #1d3a1d; color: var(--green); }
+    .badge.pending { background: #3a3318; color: #f0cf6b; }
+    .badge.rejected { background: #3a1d22; color: #ff9b9b; }
+
+    .empty {
+      text-align: center;
+      padding: 45px 15px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .empty-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .notice {
+      margin-top: 22px;
+      padding: 14px;
+      border-left: 3px solid var(--green);
+      border-radius: 0 9px 9px 0;
+      background: #a5df430d;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .notice.error {
+      border-left-color: #ff9b9b;
+      color: #ff9b9b;
+    }
+
+    footer {
+      margin-top: 30px;
+      color: #72858d;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    @media (max-width: 950px) {
+      .sidebar {
+        width: 230px;
+      }
+
+      .main {
+        margin-left: 230px;
+        padding: 22px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar {
+        width: min(300px, 85vw);
+        transform: translateX(-105%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 18px 14px;
+      }
+
+      .menu-toggle {
+        display: inline-block;
+        margin-bottom: 14px;
+      }
+
+      h1 {
+        font-size: 23px;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .history-card {
+        padding: 17px 12px;
+      }
+
+      .filters {
+        width: 100%;
+      }
+
+      .filters input,
+      .filters select {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+
+<body style="visibility:hidden">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-icon">C</div>
+      <div>Capita<span>xio</span></div>
+    </div>
+
+    <div class="menu-label">MAIN MENU</div>
+    <a class="nav-link" href="dashboard.html">⌂ &nbsp; Dashboard</a>
+
+    <div class="menu-label">ACCOUNT MENU</div>
+    <a class="nav-link active" href="deposit-history.html">↙ &nbsp; Deposit History</a>
+    <a class="nav-link" href="withdraw-history.html">↗ &nbsp; Withdraw History</a>
+    <a class="nav-link" href="transactions.html">⇄ &nbsp; Transactions</a>
+    <a class="nav-link" href="team.html">♧ &nbsp; My Team</a>
+    <a class="nav-link" href="app-download.html">↓ &nbsp; App Download</a>
+    <a class="nav-link" href="verify.html">✓ &nbsp; Verify Account</a>
+    <a class="nav-link" href="profile.html">♙ &nbsp; Profile Setting</a>
+    <a class="nav-link" href="password-change.html">⚿ &nbsp; Password Change</a>
+    <a class="nav-link" href="index.html" id="logoutLink">⇥ &nbsp; Logout</a>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <button class="menu-toggle" id="menuToggle" type="button">
+          ☰ Menu
+        </button>
+        <h1>Deposit History</h1>
+        <p class="muted">Review your deposit records and their status.</p>
+      </div>
+    </header>
+
+    <section class="summary">
+      <article class="card">
+        <p class="card-label">Total Approved Deposits</p>
+        <p class="card-value" id="totalApproved">—</p>
+        <p class="card-note">Sirf approved deposits ka total</p>
+      </article>
+
+      <article class="card">
+        <p class="card-label">Pending Requests</p>
+        <p class="card-value green" id="pendingCount">—</p>
+        <p class="card-note">Admin ke review ke intezar mein</p>
+      </article>
+    </section>
+
+    <section class="history-card">
+      <div class="history-heading">
+        <div>
+          <h2>All Deposits</h2>
+          <p class="muted">Search and filter your deposit history.</p>
+        </div>
+
+        <div class="filters">
+          <input type="search" id="search" autocomplete="off" placeholder="Search records..." aria-label="Search deposits">
+          <select id="statusFilter" autocomplete="off" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="depositRows"></tbody>
+        </table>
+      </div>
+
+      <div class="empty" id="emptyState">
+        <div class="empty-icon">▤</div>
+        <p id="emptyText">Loading...</p>
+      </div>
+    </section>
+
+    <div class="notice" id="notice">
+      Ye records aap ke account ke asli deposits hain. Balance sirf admin ke approve karne par barhta hai.
+    </div>
+
+    <footer>&copy; 2026 Capitaxio. All rights reserved.</footer>
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://zwffgoenruzcctkyptjg.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_6qL9pLwCjdfLAt6ftaSSTQ_SvWff4Ar";
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const LOGIN_PAGE = "index.html";
+
+    const search = document.getElementById("search");
+    const statusFilter = document.getElementById("statusFilter");
+    const depositRows = document.getElementById("depositRows");
+    const emptyState = document.getElementById("emptyState");
+    const emptyText = document.getElementById("emptyText");
+    const menuToggle = document.getElementById("menuToggle");
+    const sidebar = document.getElementById("sidebar");
+
+    let deposits = [];
+
+    function money(value) {
+      return "PKR " + Number(value || 0).toLocaleString("en-PK");
+    }
+
+    function formatDate(value) {
+      if (!value) return "—";
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? "—" : d.toISOString().slice(0, 10);
+    }
+
+    function label(value) {
+      const t = String(value || "");
+      return t ? t.charAt(0).toUpperCase() + t.slice(1).toLowerCase() : "—";
+    }
+
+    function shortRef(item) {
+      if (item.transaction_reference) return item.transaction_reference;
+      const id = String(item.id || "");
+      return id.length > 8 ? id.slice(0, 8).toUpperCase() : id;
+    }
+
+    function renderDeposits() {
+      const query = search.value.trim().toLowerCase();
+      const status = statusFilter.value;
+
+      const filtered = deposits.filter(function(item) {
+        const text = [shortRef(item), item.payment_method].join(" ").toLowerCase();
+        const matchesQuery = text.includes(query);
+        const matchesStatus = !status || String(item.status || "").toLowerCase() === status;
+        return matchesQuery && matchesStatus;
+      });
+
+      depositRows.replaceChildren();
+
+      filtered.forEach(function(item) {
+        const row = document.createElement("tr");
+        const st = String(item.status || "").toLowerCase();
+
+        [shortRef(item), formatDate(item.created_at), money(item.amount), item.payment_method || "—"]
+          .forEach(function(value) {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.appendChild(cell);
+          });
+
+        const statusCell = document.createElement("td");
+        const badge = document.createElement("span");
+        badge.className = "badge " + st;
+        badge.textContent = label(item.status);
+        statusCell.appendChild(badge);
+        row.appendChild(statusCell);
+
+        depositRows.appendChild(row);
+      });
+
+      emptyText.textContent = deposits.length
+        ? "Koi matching record nahi mila."
+        : "Abhi koi deposit record nahi hai.";
+      emptyState.style.display = filtered.length ? "none" : "block";
+
+      const approved = deposits
+        .filter(function(d) { return String(d.status || "").toLowerCase() === "approved"; })
+        .reduce(function(sum, d) { return sum + Number(d.amount || 0); }, 0);
+      const pending = deposits
+        .filter(function(d) { return String(d.status || "").toLowerCase() === "pending"; }).length;
+
+      document.getElementById("totalApproved").textContent = money(approved);
+      document.getElementById("pendingCount").textContent = pending;
+    }
+
+    // ---------- Login aur profile ----------
+    async function loadProfile(user) {
+      const cols = "id, status";
+
+      let { data: profile, error } = await db
+        .from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+      if (error) throw error;
+
+      if (!profile) {
+        const meta = user.user_metadata || {};
+        const { error: rpcError } = await db.rpc("complete_signup", {
+          p_full_name: meta.full_name || "",
+          p_mobile: meta.mobile || "",
+          p_ref: meta.ref || ""
+        });
+        if (rpcError) throw rpcError;
+
+        const again = await db.from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+        if (again.error) throw again.error;
+        profile = again.data;
+      }
+
+      return profile;
+    }
+
+    async function guard() {
+      const { data: s } = await db.auth.getSession();
+      if (!s.session) { window.location.replace(LOGIN_PAGE); return false; }
+
+      let profile;
+      try {
+        profile = await loadProfile(s.session.user);
+      } catch (err) {
+        console.error(err);
+        await db.auth.signOut();
+        window.location.replace(LOGIN_PAGE);
+        return false;
+      }
+
+      if (!profile || String(profile.status || "").toLowerCase() === "banned") {
+        await db.auth.signOut();
+        window.location.replace(LOGIN_PAGE);
+        return false;
+      }
+
+      document.body.style.visibility = "visible";
+      return true;
+    }
+
+    async function loadDeposits() {
+      const { data, error } = await db
+        .from("deposits")
+        .select("id, amount, payment_method, transaction_reference, status, created_at")
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      if (error) {
+        const n = document.getElementById("notice");
+        n.textContent = "Deposits load nahi huay: " + error.message;
+        n.classList.add("error");
+        emptyText.textContent = "Records load nahi ho sakay.";
+        return;
+      }
+
+      deposits = data || [];
+      renderDeposits();
+    }
+
+    search.addEventListener("input", renderDeposits);
+    statusFilter.addEventListener("change", renderDeposits);
+
+    menuToggle.addEventListener("click", function() {
+      sidebar.classList.toggle("open");
+    });
+
+    document.getElementById("logoutLink").addEventListener("click", async function(e) {
+      e.preventDefault();
+      await db.auth.signOut();
+      window.location.href = LOGIN_PAGE;
+    });
+
+    guard().then(function(ok) { if (ok) loadDeposits(); });
+  </script>
+
+</body>
+</html>

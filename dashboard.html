@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b171b">
+<title>Capitaxio | Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0b171b;--panel:#13252c;--green:#a5df43;
+--text:#f4f7fa;--muted:#9aadb5;--border:#304750
+}
+body{background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;min-height:100vh}
+a,button{-webkit-tap-highlight-color:transparent}
+button{font:inherit;cursor:pointer}
+.sidebar{
+position:fixed;top:0;bottom:0;left:0;width:255px;
+padding:25px 16px;background:#101f25;
+border-right:1px solid #526d34;overflow-y:auto;
+z-index:20;transition:transform .25s ease
+}
+.brand{display:flex;align-items:center;gap:12px;padding:5px 8px 25px;border-bottom:1px solid var(--border);margin-bottom:22px}
+.brand-icon{width:44px;height:44px;border-radius:13px;background:var(--green);color:#102019;display:grid;place-items:center;font-weight:900;font-size:23px}
+.brand-name{font-size:20px;font-weight:800}
+.brand-name span{color:var(--green)}
+.menu-label{color:#758b92;font-size:11px;letter-spacing:1.5px;margin:22px 10px 12px}
+.nav-link{
+display:flex;align-items:center;gap:13px;width:100%;
+padding:14px 13px;margin-bottom:7px;border:1px solid transparent;
+border-radius:12px;background:transparent;color:#c6d2d7;
+text-align:left;text-decoration:none;font-size:14px;cursor:pointer
+}
+.nav-link:hover,.nav-link.active{color:var(--green);background:#263b2a;border-color:#526d34}
+.nav-icon{width:22px;text-align:center;font-size:18px}
+.main{margin-left:255px;padding:28px;max-width:1500px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:28px}
+.topbar h1{font-size:27px;margin:8px 0}
+.muted{color:var(--muted);font-size:14px;line-height:1.6}
+.menu-toggle{display:none;border:1px solid var(--border);background:var(--panel);color:var(--green);border-radius:10px;padding:10px 13px}
+.welcome{
+padding:25px;border:1px solid #526d34;border-radius:19px;
+background:radial-gradient(circle at right top,#405d292e,transparent 55%),var(--panel);
+margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:15px
+}
+.welcome h2{font-size:23px;margin-bottom:10px}
+.welcome p{max-width:600px;color:var(--muted);font-size:14px;line-height:1.7}
+.welcome-tag{display:inline-block;margin-top:18px;background:#a5df4318;color:var(--green);border:1px solid #526d34;padding:8px 12px;border-radius:8px;font-size:12px}
+.welcome-icon{font-size:48px;color:var(--green)}
+.balance{
+padding:24px;border:1px solid var(--green);border-radius:20px;
+background:linear-gradient(130deg,#193039,#0b171b);
+margin-bottom:18px
+}
+.balance-label{font-size:16px;color:#c4d1d5;margin-bottom:12px}
+.balance-amount{font-size:clamp(32px,5vw,46px);font-weight:800;overflow-wrap:anywhere}
+.minirow{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+.mini{border:1px solid #52636a;border-radius:12px;padding:13px;min-width:150px;background:#ffffff08}
+.mini small{display:block;color:var(--muted);margin-bottom:7px}
+.mini b{font-size:20px;color:var(--green)}
+.earning{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:19px;margin-bottom:20px}
+.earning-icon{font-size:35px;color:var(--green)}
+.earning b{display:block;color:var(--green);font-size:23px;margin:5px 0}
+.primary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.big{
+min-height:115px;display:flex;flex-direction:column;align-items:center;
+justify-content:center;gap:9px;text-decoration:none;color:var(--text);
+font-weight:bold;font-size:16px;border:1px solid #526d34;
+border-radius:17px;background:linear-gradient(145deg,#1d343b,#101e23)
+}
+.big:hover{border-color:var(--green);background:#263b2a}
+.big span{font-size:30px;color:var(--green)}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:16px;min-width:0}
+.panel h3{font-size:17px;margin-bottom:8px}
+.support{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:17px}
+.support a,.quick a,.quick button{
+min-height:85px;display:flex;flex-direction:column;align-items:center;
+justify-content:center;gap:8px;border:1px solid var(--border);
+border-radius:12px;background:#0e1d23;color:var(--text);
+text-decoration:none;text-align:center;padding:10px;font-size:12px
+}
+.support b,.quick b{font-size:25px;color:var(--green)}
+.referral{display:flex;gap:9px;margin-top:12px}
+.referral input{flex:1;min-width:0;background:#0e1d23;border:1px solid #52636a;border-radius:10px;padding:12px;color:var(--text)}
+.copy{background:var(--green);color:#102019;border:0;border-radius:10px;padding:0 17px;font-weight:bold}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:17px}
+.quick a:hover,.support a:hover,.quick button:hover{border-color:var(--green)}
+.account{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}
+.account div{text-align:center;background:#0e1d23;border:1px solid var(--border);border-radius:12px;padding:14px 7px}
+.account span{display:block;color:var(--muted);font-size:11px;margin:8px 0}
+.account strong{color:var(--green);font-size:13px;overflow-wrap:anywhere}
+.plan{display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--border);border-radius:17px;padding:20px}
+.plan h3{margin-bottom:8px}
+.plan strong{display:block;font-size:22px;margin:8px 0}
+.timer{width:95px;height:95px;border:5px solid #526d34;border-radius:50%;display:grid;place-content:center;text-align:center;color:var(--green);font-weight:bold}
+.timer small{color:var(--muted);font-weight:normal}
+.notice{margin-top:20px;border-left:3px solid var(--green);padding:13px 15px;background:#a5df430d;color:var(--muted);font-size:12px;line-height:1.7;border-radius:0 9px 9px 0}
+.notice.error{border-left-color:#ff9b9b;color:#ff9b9b}
+.overlay{display:none}
+footer{margin-top:30px;color:#72858d;font-size:12px;text-align:center;padding:15px}
+@media(max-width:1000px){
+.sidebar{width:235px}.main{margin-left:235px;padding:22px}
+.account{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:700px){
+.sidebar{width:min(310px,85vw);transform:translateX(-105%)}
+.sidebar.open{transform:translateX(0)}
+.main{margin-left:0;padding:18px 14px}
+.menu-toggle{display:inline-block}
+.topbar{align-items:flex-start;margin-bottom:22px}
+.topbar h1{font-size:23px}
+.welcome{padding:19px}.welcome h2{font-size:20px}
+.welcome-icon{font-size:35px}
+.primary{gap:8px}
+.big{min-height:95px;font-size:13px}
+.big span{font-size:26px}
+.support{gap:6px}
+.support a{font-size:10px;padding:7px}
+.quick{grid-template-columns:repeat(3,1fr);gap:7px}
+.quick a,.quick button{font-size:10px;min-height:80px}
+.account{grid-template-columns:repeat(2,1fr)}
+.balance{padding:19px}
+}
+</style>
+</head>
+
+<body style="visibility:hidden">
+<aside class="sidebar" id="sidebar">
+<div class="brand">
+<div class="brand-icon">C</div>
+<div class="brand-name">Capita<span>xio</span></div>
+</div>
+
+<div class="menu-label">MAIN MENU</div>
+<a class="nav-link active" href="dashboard.html"><span class="nav-icon">⌂</span>Dashboard</a>
+<a class="nav-link" href="profile.html"><span class="nav-icon">♙</span>Profile Setting</a>
+
+<div class="menu-label">ACCOUNT MENU</div>
+<a class="nav-link" href="deposit.html"><span class="nav-icon">↙</span>Deposit</a>
+<a class="nav-link" href="deposit-history.html"><span class="nav-icon">▤</span>Deposit History</a>
+<a class="nav-link" href="withdrawal.html"><span class="nav-icon">↗</span>Withdraw</a>
+<a class="nav-link" href="withdraw-history.html"><span class="nav-icon">↗</span>Withdraw History</a>
+<a class="nav-link" href="transactions.html"><span class="nav-icon">⇄</span>Transactions</a>
+<a class="nav-link" href="team.html"><span class="nav-icon">♧</span>My Team</a>
+<a class="nav-link" href="my-plan.html"><span class="nav-icon">▣</span>My Plan</a>
+<a class="nav-link" href="app-download.html"><span class="nav-icon">↓</span>App Download</a>
+<a class="nav-link" href="verify.html"><span class="nav-icon">✓</span>Verify Account</a>
+<a class="nav-link" href="password-change.html"><span class="nav-icon">⚿</span>Password Change</a>
+<button class="nav-link" id="logoutButton" type="button"><span class="nav-icon">⇥</span>Logout</button>
+</aside>
+
+<div class="overlay" id="overlay"></div>
+
+<main class="main">
+<header class="topbar">
+<div>
+<button class="menu-toggle" id="menuToggle" type="button">☰ Menu</button>
+<h1>Dashboard</h1>
+<p class="muted">Welcome to your Capitaxio account.</p>
+</div>
+<div class="muted">● Account overview</div>
+</header>
+
+<section class="welcome">
+<div>
+<h2>Hello, <span id="userName">Member</span> 👋</h2>
+<p>Your account overview and quick actions in one place.</p>
+<span class="welcome-tag" id="welcomeTag">✦ Welcome to Capitaxio</span>
+</div>
+<div class="welcome-icon">◉</div>
+</section>
+
+<section class="balance">
+<div class="balance-label">Total Balance</div>
+<div class="balance-amount" id="balanceAmount">Rs 0.00</div>
+<div class="minirow">
+<div class="mini"><small>▤ Invested</small><b id="investedValue">—</b></div>
+<div class="mini"><small>↗ Profit</small><b id="profitValue">—</b></div>
+</div>
+</section>
+
+<section class="earning">
+<div class="earning-icon">📈</div>
+<div>
+<span class="muted">Live Earning</span>
+<b id="earningValue">—</b>
+<small class="muted">Earning ka data plan system connect hone ke baad nazar aayega.</small>
+</div>
+</section>
+
+<section class="primary">
+<a class="big" href="deposit.html"><span>↙</span>Deposit</a>
+<a class="big" href="withdrawal.html"><span>↗</span>Withdraw</a>
+<a class="big" href="my-plan.html"><span>▤</span>My Plan</a>
+</section>
+
+<section class="panel">
+<h3>🛡 Support Center</h3>
+<div class="support">
+<a href="#"><b>◉</b>WhatsApp Payment</a>
+<a href="#"><b>◉</b>WhatsApp Group</a>
+<a href="#"><b>◉</b>WhatsApp General</a>
+</div>
+</section>
+
+<section class="panel">
+<h3>🔗 Referral Link</h3>
+<p class="muted">Share your referral link with others.</p>
+<div class="referral">
+<input id="referral" value="Loading..." readonly>
+<button class="copy" id="copyButton" type="button">Copy</button>
+</div>
+</section>
+
+<section class="panel">
+<h3>📈 Quick Actions</h3>
+<div class="quick">
+<a href="deposit-history.html"><b>⬇</b>Deposit History</a>
+<a href="withdraw-history.html"><b>⬆</b>Withdraw History</a>
+<a href="transactions.html"><b>▤</b>Transactions</a>
+<a href="team.html"><b>♧</b>My Team</a>
+<a href="app-download.html"><b>↓</b>App Download</a>
+<a href="verify.html"><b>✓</b>Verify Account</a>
+<a href="profile.html"><b>♙</b>Profile Setting</a>
+<a href="password-change.html"><b>🔒</b>Password Change</a>
+<button id="quickLogout" type="button"><b>⇥</b>Logout</button>
+</div>
+</section>
+
+<section class="panel">
+<h3>📊 Account Statistics</h3>
+<div class="account">
+<div>▤<span>Total Deposit</span><strong id="statDeposit">Rs 0.00</strong></div>
+<div>↗<span>Total Withdraw</span><strong id="statWithdraw">Rs 0.00</strong></div>
+<div>⬇<span>Pending Deposit</span><strong id="statPendingDeposit">Rs 0.00</strong></div>
+<div>⬆<span>Pending Withdraw</span><strong id="statPendingWithdraw">Rs 0.00</strong></div>
+<div>♧<span>Total Team</span><strong id="statTeam">0</strong></div>
+<div>📈<span>Total Investment</span><strong>—</strong></div>
+<div>▤<span>Total Income</span><strong>—</strong></div>
+<div>📊<span>Team Commission</span><strong>—</strong></div>
+</div>
+<p class="muted" style="text-align:center;margin-top:13px">Deposit, withdraw aur team ke numbers asli records se aate hain.</p>
+</section>
+
+<section class="plan">
+<div>
+<h3>▤ Active Plan</h3>
+<strong>No active plan</strong>
+<p class="muted">Rs 0.00 · No active cycle</p>
+</div>
+<div class="timer">00:00:00<small>No active cycle</small></div>
+</section>
+
+<div class="notice" id="notice">
+Balance, deposit aur withdraw ke numbers aap ke account ke asli records se aate hain. Kisi munafe ya investment return ka wada nahi kiya jata.
+</div>
+
+<footer>© 2026 Capitaxio. All rights reserved.</footer>
+</main>
+
+<script>
+const SUPABASE_URL = "https://zwffgoenruzcctkyptjg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6qL9pLwCjdfLAt6ftaSSTQ_SvWff4Ar";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const LOGIN_PAGE = "index.html";
+const REGISTER_PAGE = "register.html";
+
+const sidebar=document.getElementById("sidebar");
+const menuToggle=document.getElementById("menuToggle");
+const overlay=document.getElementById("overlay");
+
+function closeMenu(){
+sidebar.classList.remove("open");
+overlay.style.display="none";
+menuToggle.setAttribute("aria-expanded","false");
+}
+
+menuToggle.addEventListener("click",function(){
+const isOpen=sidebar.classList.toggle("open");
+overlay.style.display=isOpen?"block":"none";
+overlay.style.position="fixed";
+overlay.style.inset="0";
+overlay.style.background="#0009";
+overlay.style.zIndex="10";
+menuToggle.setAttribute("aria-expanded",String(isOpen));
+});
+
+overlay.addEventListener("click",closeMenu);
+
+document.querySelectorAll(".nav-link").forEach(function(link){
+link.addEventListener("click",function(){
+if(window.innerWidth<=700 && link.tagName==="A"){closeMenu();}
+});
+});
+
+document.getElementById("copyButton").addEventListener("click",async function(){
+const input=document.getElementById("referral");
+if(!input.value || input.value==="Loading..."){return;}
+try{
+await navigator.clipboard.writeText(input.value);
+}catch(error){
+input.select();
+document.execCommand("copy");
+}
+alert("Referral link copied.");
+});
+
+async function logout(){
+await db.auth.signOut();
+window.location.href=LOGIN_PAGE;
+}
+document.getElementById("logoutButton").addEventListener("click",logout);
+document.getElementById("quickLogout").addEventListener("click",logout);
+
+// ---------- Helpers ----------
+function money(value){
+return "Rs "+Number(value||0).toLocaleString("en-PK",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function showError(text){
+const n=document.getElementById("notice");
+n.textContent=text;
+n.classList.add("error");
+}
+
+function sumByStatus(rows,status){
+return (rows||[])
+.filter(function(r){return String(r.status||"").toLowerCase()===status;})
+.reduce(function(sum,r){return sum+Number(r.amount||0);},0);
+}
+
+// ---------- Login aur profile ----------
+async function loadProfile(user){
+const cols="id, full_name, email, balance, referral_code, status";
+
+let { data: profile, error } = await db
+.from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+if(error) throw error;
+
+if(!profile){
+const meta=user.user_metadata||{};
+const { error: rpcError } = await db.rpc("complete_signup",{
+p_full_name: meta.full_name||"",
+p_mobile: meta.mobile||"",
+p_ref: meta.ref||""
+});
+if(rpcError) throw rpcError;
+
+const again = await db.from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+if(again.error) throw again.error;
+profile = again.data;
+}
+
+return profile;
+}
+
+async function guard(){
+const { data: s } = await db.auth.getSession();
+if(!s.session){ window.location.replace(LOGIN_PAGE); return null; }
+
+let profile;
+try{
+profile = await loadProfile(s.session.user);
+}catch(err){
+console.error(err);
+await db.auth.signOut();
+window.location.replace(LOGIN_PAGE);
+return null;
+}
+
+if(!profile || String(profile.status||"").toLowerCase()==="banned"){
+await db.auth.signOut();
+window.location.replace(LOGIN_PAGE);
+return null;
+}
+
+document.body.style.visibility="visible";
+return { profile: profile, authId: s.session.user.id };
+}
+
+// ---------- Data dikhana ----------
+function showProfile(profile){
+document.getElementById("userName").textContent = profile.full_name || "Member";
+document.getElementById("balanceAmount").textContent = money(profile.balance);
+
+if(profile.referral_code){
+document.getElementById("welcomeTag").textContent = "✦ Referral code: " + profile.referral_code;
+
+const base = window.location.href.split("?")[0].split("#")[0];
+const folder = base.substring(0, base.lastIndexOf("/") + 1);
+document.getElementById("referral").value = folder + REGISTER_PAGE + "?ref=" + profile.referral_code;
+}else{
+document.getElementById("referral").value = "";
+}
+}
+
+async function loadStats(profile, authId){
+const [dep, wd, refs] = await Promise.all([
+db.from("deposits").select("amount, status").limit(5000),
+db.from("withdrawals").select("amount, status").limit(5000),
+db.from("referrals").select("*").limit(5000)
+]);
+
+if(dep.error || wd.error){
+showError("Kuch numbers load nahi huay: " + ((dep.error || wd.error).message));
+}
+
+if(!dep.error){
+document.getElementById("statDeposit").textContent = money(sumByStatus(dep.data,"approved"));
+document.getElementById("statPendingDeposit").textContent = money(sumByStatus(dep.data,"pending"));
+}
+
+if(!wd.error){
+document.getElementById("statWithdraw").textContent = money(sumByStatus(wd.data,"approved"));
+document.getElementById("statPendingWithdraw").textContent = money(sumByStatus(wd.data,"pending"));
+}
+
+if(!refs.error){
+const mine = [String(profile.id), String(authId)];
+const team = (refs.data||[]).filter(function(r){
+return mine.indexOf(String(r.referrer_id ?? r.user_id)) !== -1;
+});
+document.getElementById("statTeam").textContent = team.length;
+}
+}
+
+guard().then(function(result){
+if(!result) return;
+showProfile(result.profile);
+loadStats(result.profile, result.authId);
+});
+</script>
+</body>
+</html>

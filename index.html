@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capitaxio | Login</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#080d18">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080d18;--panel:#111a2a;--green:#b6ff42;--text:#f3f6fc;--muted:#8996aa;--border:#263349}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{width:100%;max-width:430px}
+.logo{font-size:30px;font-weight:800;color:var(--green);text-align:center;margin-bottom:8px}
+.logo span{color:#fff}
+.tagline{text-align:center;color:var(--muted);font-size:13px;margin-bottom:26px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:26px}
+.card h2{font-size:20px;margin-bottom:4px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:7px;margin-top:15px}
+input{width:100%;padding:13px 14px;border-radius:9px;border:1px solid var(--border);background:#0a111d;color:var(--text);font-size:14px;outline:none}
+input:focus{border-color:var(--green)}
+.btn{width:100%;margin-top:22px;background:var(--green);color:#10180a;font-weight:bold;padding:14px;border-radius:9px;border:0;font-size:15px;cursor:pointer}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.msg{margin-top:16px;padding:12px;border-radius:9px;font-size:13px;line-height:1.6;display:none}
+.msg.error{display:block;background:rgba(255,80,80,.1);border:1px solid rgba(255,80,80,.35);color:#ffb3b3}
+.links{display:flex;justify-content:space-between;margin-top:20px;font-size:13px}
+.links a{color:var(--muted);text-decoration:none}
+.links a span{color:var(--green)}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+    <div class="logo">CAPITA<span>XIO</span></div>
+    <p class="tagline">Sign in to your account</p>
+
+    <div class="card">
+        <h2>Login</h2>
+
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password">
+
+        <button class="btn" id="loginBtn" type="button">Login</button>
+        <div class="msg" id="msg"></div>
+
+        <div class="links">
+            <a href="register.html" id="registerLink">New here? <span>Create account</span></a>
+        </div>
+    </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://zwffgoenruzcctkyptjg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6qL9pLwCjdfLAt6ftaSSTQ_SvWff4Ar";
+const DASHBOARD_PAGE = "dashboard.html";
+
+const msg = document.getElementById("msg");
+function showMsg(text){ msg.textContent = text; msg.className = "msg error"; }
+function clearMsg(){ msg.className = "msg"; msg.textContent = ""; }
+
+// Referral link (?ref=CODE) register page tak pahunchao
+const ref = new URLSearchParams(window.location.search).get("ref");
+if (ref) document.getElementById("registerLink").href = "register.html?ref=" + encodeURIComponent(ref);
+
+if (!window.supabase) {
+    showMsg("Internet ya script ka masla hai. Page refresh karein ya thori dair baad try karein.");
+    document.getElementById("loginBtn").disabled = true;
+} else {
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    db.auth.getSession().then(({ data }) => {
+        if (data && data.session) window.location.replace(DASHBOARD_PAGE);
+    });
+
+    async function doLogin(){
+        clearMsg();
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        if (!email || !password) { showMsg("Email aur password dono likhein."); return; }
+
+        const btn = document.getElementById("loginBtn");
+        btn.disabled = true; btn.textContent = "Please wait...";
+
+        const { error } = await db.auth.signInWithPassword({ email, password });
+        if (error) {
+            showMsg("Login nahi hua: email ya password galat hai.");
+            btn.disabled = false; btn.textContent = "Login";
+            return;
+        }
+        window.location.replace(DASHBOARD_PAGE);
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", doLogin);
+    document.getElementById("loginPassword").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+}
+</script>
+</body>
+</html>

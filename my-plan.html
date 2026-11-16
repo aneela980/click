@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capitaxio | My Plans</title>
+
+<style>
+:root{
+    --bg:#0b171b;
+    --panel:#13252c;
+    --green:#a5df43;
+    --text:#f4f7fa;
+    --muted:#9aadb5;
+    --border:#304750;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:var(--bg);color:var(--text)}
+.layout{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{
+    width:255px;background:var(--panel);padding:25px 16px;
+    position:fixed;top:0;bottom:0;left:0;overflow-y:auto;
+    border-right:1px solid var(--border);z-index:10;
+}
+.logo{font-size:25px;font-weight:bold;color:var(--green);margin:5px 10px 30px}
+.logo span{color:var(--text)}
+.menu-title{font-size:11px;color:var(--muted);margin:20px 10px 10px}
+.sidebar a{
+    display:block;text-decoration:none;color:var(--muted);
+    padding:12px 13px;border-radius:8px;margin:5px 0;font-size:14px;
+}
+.sidebar a:hover,.sidebar a.active{
+    background:#263c39;color:var(--green);
+}
+
+/* Main */
+.main{margin-left:255px;width:calc(100% - 255px);padding:28px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
+.topbar h2{font-size:23px}
+.menu-btn{
+    display:none;background:var(--panel);color:var(--green);
+    border:1px solid var(--border);padding:9px 13px;border-radius:7px;
+}
+.muted{color:var(--muted);font-size:13px;line-height:1.6}
+
+/* Cards */
+.card{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:13px;padding:22px;margin-bottom:20px;
+}
+.section-heading{margin-bottom:18px}
+.section-heading h3{font-size:18px;margin-bottom:7px}
+
+.active-plan{
+    background:#1b3033;border:1px solid var(--border);
+    border-radius:10px;padding:18px;display:flex;
+    justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;
+}
+.status{
+    color:var(--green);background:#263c39;
+    padding:7px 12px;border-radius:20px;font-size:12px;
+}
+
+/* Plan grid */
+.plans-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:18px;
+}
+.plan-card{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:13px;padding:23px;transition:.2s;
+}
+.plan-card:hover{border-color:var(--green);transform:translateY(-3px)}
+.plan-top{
+    display:flex;justify-content:space-between;
+    align-items:center;gap:10px;margin-bottom:20px;
+}
+.plan-number{
+    width:42px;height:42px;display:flex;
+    align-items:center;justify-content:center;
+    background:#263c39;color:var(--green);
+    border-radius:10px;font-weight:bold;
+}
+.plan-tag{
+    font-size:11px;padding:6px 10px;
+    border:1px solid var(--border);border-radius:20px;color:var(--muted);
+}
+.plan-card h3{font-size:20px;margin-bottom:8px}
+.plan-price{
+    color:var(--green);font-size:24px;
+    font-weight:bold;margin:17px 0;
+}
+.plan-price small{color:var(--muted);font-size:12px;font-weight:normal}
+.plan-details{border-top:1px solid var(--border);padding-top:15px}
+.detail-row{
+    display:flex;justify-content:space-between;gap:10px;
+    padding:9px 0;font-size:13px;
+    border-bottom:1px solid rgba(48,71,80,.5);
+}
+.detail-row span:first-child{color:var(--muted)}
+.detail-row span:last-child{text-align:right;overflow-wrap:anywhere}
+.plan-btn{
+    display:block;width:100%;margin-top:18px;padding:13px;
+    text-align:center;border:1px solid var(--green);
+    border-radius:8px;background:var(--green);
+    color:#142017;font-weight:bold;cursor:pointer;font-size:14px;
+}
+.plan-btn:hover{opacity:.9}
+.plan-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Messages */
+.message{
+    display:none;padding:15px;border-radius:9px;
+    margin:15px 0;font-size:13px;line-height:1.7;
+}
+.error{display:block;background:#392629;border:1px solid #86515a;color:#ffdce0}
+.success{display:block;background:#263c39;border:1px solid var(--green)}
+.loading{
+    background:var(--panel);border:1px solid var(--border);
+    border-radius:10px;padding:25px;text-align:center;
+    color:var(--muted);grid-column:1/-1;
+}
+.notice{
+    background:#263c39;border:1px solid var(--border);
+    padding:15px;border-radius:9px;margin-top:20px;
+    color:var(--muted);font-size:12px;line-height:1.7;
+}
+
+@media(max-width:900px){
+    .plans-grid{grid-template-columns:1fr}
+}
+@media(max-width:850px){
+    .sidebar{transform:translateX(-100%);transition:.25s}
+    .sidebar.open{transform:translateX(0)}
+    .main{margin-left:0;width:100%;padding:18px}
+    .menu-btn{display:block}
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+<aside class="sidebar" id="sidebar">
+    <div class="logo">C<span>apitaxio</span></div>
+
+    <div class="menu-title">MAIN MENU</div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="profile.html">Profile Setting</a>
+    <a href="deposit.html">Deposit</a>
+    <a href="deposit-history.html">Deposit History</a>
+    <a href="withdrawal.html">Withdraw</a>
+    <a href="withdraw-history.html">Withdraw History</a>
+    <a href="transactions.html">Transactions</a>
+    <a href="my-team.html">My Team</a>
+    <a href="my-plan.html" class="active">My Plan</a>
+
+    <div class="menu-title">ACCOUNT</div>
+    <a href="app-download.html">App Download</a>
+    <a href="verify-account.html">Verify Account</a>
+    <a href="password-change.html">Password Change</a>
+    <a href="logout.html">Logout</a>
+</aside>
+
+<main class="main">
+
+    <div class="topbar">
+        <div>
+            <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
+            <h2 style="margin-top:10px">My Plans</h2>
+            <p class="muted">Explore available plans in Capitaxio</p>
+        </div>
+    </div>
+
+    <section class="card">
+        <div class="section-heading">
+            <h3>My Active Plan</h3>
+            <p class="muted">Your activated plan will appear here.</p>
+        </div>
+
+        <div class="active-plan">
+            <div>
+                <h3 style="margin-bottom:7px">No Active Plan</h3>
+                <p class="muted">You have not activated a plan yet.</p>
+            </div>
+            <span class="status">Not Active</span>
+        </div>
+    </section>
+
+    <div class="section-heading">
+        <h3>Available Plans</h3>
+        <p class="muted">Plans are loaded from the Capitaxio database.</p>
+    </div>
+
+    <div id="pageMessage" class="message"></div>
+
+    <section class="plans-grid" id="plansGrid">
+        <div class="loading">Loading plans...</div>
+    </section>
+
+    <div class="notice">
+        <strong style="color:var(--green)">Important:</strong><br>
+        Plan information is displayed from the database. Selecting a plan
+        only shows its details; it does not activate a plan, make a payment
+        or promise any profit. Real activation requires secure backend
+        processing, balance checks and admin approval.
+    </div>
+
+    <p class="muted" style="text-align:center;margin:25px 0">
+        © 2026 Capitaxio. All Rights Reserved.
+    </p>
+
+</main>
+</div>
+
+<!-- Supabase Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+// SUPABASE CONNECTION
+const SUPABASE_URL = "https://zwffgoenruzcctkyptjg.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+"sb_publishable_6qL9pLwCjdfLAt6ftaSSTQ_SvWff4Ar";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+);
+
+// SIDEBAR
+function toggleMenu(){
+    document.getElementById("sidebar").classList.toggle("open");
+}
+
+// SAFE HTML TEXT
+function escapeHTML(value){
+    return String(value ?? "").replace(/[&<>"']/g,function(char){
+        return {
+            "&":"&amp;",
+            "<":"&lt;",
+            ">":"&gt;",
+            '"':"&quot;",
+            "'":"&#039;"
+        }[char];
+    });
+}
+
+// FORMAT PRICE
+function formatAmount(value){
+    const amount = Number(value);
+
+    if(!Number.isFinite(amount)){
+        return "Not configured";
+    }
+
+    return "PKR " + amount.toLocaleString("en-PK",{
+        minimumFractionDigits:2,
+        maximumFractionDigits:2
+    });
+}
+
+// SHOW MESSAGE
+function showMessage(message,type){
+    const box = document.getElementById("pageMessage");
+    box.className = "message " + type;
+    box.textContent = message;
+}
+
+// LOAD PLANS FROM SUPABASE
+async function loadPlans(){
+
+    const grid = document.getElementById("plansGrid");
+
+    try{
+        const {data,error} = await supabaseClient
+            .from("plans")
+            .select("id,name,description,amount,duration,benefits,is_active,sort_order")
+            .eq("is_active",true)
+            .order("sort_order",{ascending:true});
+
+        if(error){
+            throw error;
+        }
+
+        if(!data || data.length === 0){
+            grid.innerHTML =
+                '<div class="loading">No active plans found. Please check your Supabase plans table.</div>';
+            return;
+        }
+
+        grid.innerHTML = "";
+
+        data.forEach((plan,index)=>{
+
+            const name = escapeHTML(plan.name);
+            const description = escapeHTML(plan.description || "Plan details");
+            const duration = escapeHTML(plan.duration || "Not configured");
+            const benefits = escapeHTML(plan.benefits || "Not configured");
+            const amount = formatAmount(plan.amount);
+
+            const article = document.createElement("article");
+            article.className = "plan-card";
+
+            article.innerHTML = `
+                <div class="plan-top">
+                    <div class="plan-number">${String(index+1).padStart(2,"0")}</div>
+                    <span class="plan-tag">Plan ${String(index+1).padStart(2,"0")}</span>
+                </div>
+
+                <h3>${name}</h3>
+                <p class="muted">${description}</p>
+
+                <div class="plan-price">
+                    ${amount}
+                </div>
+
+                <div class="plan-details">
+                    <div class="detail-row">
+                        <span>Plan Amount</span>
+                        <span>${amount}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span>Duration</span>
+                        <span>${duration}</span>
+                    </div>
+
+                    <div class="detail-row">
+                        <span>Benefits</span>
+                        <span>${benefits}</span>
+                    </div>
+                </div>
+
+                <button class="plan-btn" type="button">
+                    View Plan
+                </button>
+            `;
+
+            article.querySelector("button").addEventListener("click",()=>{
+                showPlanDetails(plan);
+            });
+
+            grid.appendChild(article);
+        });
+
+    }catch(error){
+
+        console.error("Supabase plans error:",error);
+
+        grid.innerHTML =
+            '<div class="loading">Plans could not be loaded.</div>';
+
+        showMessage(
+            "Supabase connection ya plans table mein masla hai. Table name, column names aur SELECT policy check karein. Details browser console mein mil sakti hain.",
+            "error"
+        );
+    }
+}
+
+// VIEW PLAN DETAILS
+function showPlanDetails(plan){
+
+    const amount = formatAmount(plan.amount);
+
+    const message =
+        "Selected Plan: " + plan.name +
+        " | Amount: " + amount +
+        " | Duration: " + (plan.duration || "Not configured") +
+        " | Benefits: " + (plan.benefits || "Not configured") +
+        ". This is a preview only. No plan has been activated.";
+
+    showMessage(message,"success");
+
+    document.getElementById("pageMessage").scrollIntoView({
+        behavior:"smooth",
+        block:"center"
+    });
+}
+
+// START
+loadPlans();
+</script>
+
+</body>
+</html>

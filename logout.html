@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capitaxio - Logout</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: #07111f;
+    color: #f2f6fc;
+}
+
+.logout-card {
+    width: 100%;
+    max-width: 440px;
+    padding: 38px 28px;
+    text-align: center;
+    background: #101e30;
+    border: 1px solid #20334a;
+    border-radius: 18px;
+}
+
+.logo {
+    color: #b6ff39;
+    font-size: 27px;
+    font-weight: 800;
+    margin-bottom: 30px;
+    letter-spacing: 1px;
+}
+
+.icon {
+    width: 76px;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 22px;
+    border-radius: 50%;
+    background: rgba(182, 255, 57, 0.1);
+    border: 1px solid rgba(182, 255, 57, 0.35);
+    color: #b6ff39;
+    font-size: 35px;
+}
+
+h1 {
+    font-size: 25px;
+    margin-bottom: 13px;
+}
+
+p {
+    color: #91a2b8;
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 27px;
+}
+
+button, .back-link {
+    width: 100%;
+    display: block;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+button {
+    background: #b6ff39;
+    color: #101a08;
+    border: none;
+    margin-bottom: 13px;
+}
+
+button:hover {
+    background: #c8ff69;
+}
+
+.back-link {
+    color: #c4d0df;
+    border: 1px solid #30435a;
+}
+
+.back-link:hover {
+    border-color: #b6ff39;
+    color: #b6ff39;
+}
+
+.note {
+    font-size: 11px;
+    color: #71839b;
+    margin-top: 24px;
+    margin-bottom: 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="logout-card">
+
+    <div class="logo">CAPITAXIO</div>
+
+    <div class="icon">↗</div>
+
+    <h1>Ready to Leave?</h1>
+
+    <p>
+        Are you sure you want to log out of your Capitaxio account?
+        You can log in again whenever you need.
+    </p>
+
+    <button id="logoutBtn">Yes, Log Me Out</button>
+
+    <a href="dashboard.html" class="back-link">
+        Cancel — Back to Dashboard
+    </a>
+
+    <p class="note">
+        Keep your account details private and secure.
+    </p>
+
+</div>
+
+<script>
+document.getElementById("logoutBtn").addEventListener("click", function () {
+    // Real logout requires a connected authentication system.
+    // Do not claim a session was ended when authentication is not configured.
+    alert("Logout abhi authentication system se connected nahi hai. Real logout ke liye authentication connect karna zaroori hai.");
+});
+</script>
+
+</body>
+</html>

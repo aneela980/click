@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Withdrawal History | Capitaxio</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #080d18;
+    --panel: #111a2a;
+    --panel2: #162236;
+    --green: #b6ff42;
+    --text: #f3f6fc;
+    --muted: #8996aa;
+    --border: #263349;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 245px;
+    background: #0c1423;
+    border-right: 1px solid var(--border);
+    padding: 25px 16px;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    overflow-y: auto;
+}
+
+.logo {
+    font-size: 23px;
+    font-weight: 800;
+    color: var(--green);
+    padding: 0 10px 28px;
+}
+
+.logo span {
+    color: white;
+}
+
+.menu-title {
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 0 10px;
+    margin-bottom: 12px;
+}
+
+.nav a {
+    display: block;
+    text-decoration: none;
+    color: #aeb9ca;
+    padding: 13px 12px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.nav a:hover,
+.nav a.active {
+    background: rgba(182,255,66,0.1);
+    color: var(--green);
+}
+
+.nav a.active {
+    border-left: 3px solid var(--green);
+}
+
+.main {
+    margin-left: 245px;
+    width: calc(100% - 245px);
+    padding: 30px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 32px;
+}
+
+.topbar h2 {
+    font-size: 25px;
+}
+
+.topbar p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 7px;
+}
+
+.user-badge {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 11px 15px;
+    border-radius: 10px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.user-badge span {
+    color: var(--green);
+}
+
+.page-heading {
+    margin-bottom: 22px;
+}
+
+.page-heading h1 {
+    font-size: 27px;
+    margin-bottom: 9px;
+}
+
+.page-heading p {
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 22px;
+    border-radius: 13px;
+}
+
+.stat-card p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 13px;
+}
+
+.stat-card h3 {
+    font-size: 25px;
+    color: var(--green);
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 22px;
+    border-bottom: 1px solid var(--border);
+}
+
+.panel-header h3 {
+    font-size: 17px;
+    margin-bottom: 7px;
+}
+
+.panel-header p {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.filters {
+    display: flex;
+    gap: 12px;
+    padding: 20px;
+    flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    border-radius: 8px;
+    outline: none;
+    font-size: 13px;
+}
+
+.filters input {
+    flex: 1;
+    min-width: 180px;
+}
+
+.filters select {
+    min-width: 150px;
+}
+
+.filters input:focus,
+.filters select:focus {
+    border-color: var(--green);
+}
+
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px;
+}
+
+th, td {
+    text-align: left;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+}
+
+th {
+    color: var(--muted);
+    font-weight: 500;
+    background: rgba(255,255,255,0.015);
+}
+
+td {
+    color: #dce4f0;
+}
+
+.status {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    background: #273247;
+    color: #d3dbea;
+}
+
+.status.completed {
+    color: var(--green);
+    background: rgba(182,255,66,0.1);
+}
+
+.status.pending {
+    color: #ffd36a;
+    background: rgba(255,211,106,0.1);
+}
+
+.status.rejected {
+    color: #ff8e98;
+    background: rgba(255,100,115,0.1);
+}
+
+.empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--muted);
+}
+
+.empty .empty-icon {
+    font-size: 32px;
+    margin-bottom: 13px;
+}
+
+.empty h3 {
+    color: var(--text);
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.empty p {
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.notice {
+    margin-top: 20px;
+    padding: 16px;
+    border: 1px solid rgba(182,255,66,0.2);
+    background: rgba(182,255,66,0.04);
+    color: #c6d2e2;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.notice.error {
+    border-color: rgba(255,142,152,0.4);
+    color: #ff8e98;
+}
+
+.notice strong {
+    color: var(--green);
+}
+
+.menu-toggle {
+    display: none;
+    background: var(--panel);
+    color: var(--green);
+    border: 1px solid var(--border);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: 10;
+        transition: transform 0.25s;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main {
+        margin-left: 0;
+        width: 100%;
+        padding: 22px;
+    }
+
+    .menu-toggle {
+        display: inline-block;
+    }
+
+    .topbar {
+        flex-wrap: wrap;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .main {
+        padding: 16px;
+    }
+
+    .topbar h2 {
+        font-size: 20px;
+    }
+
+    .page-heading h1 {
+        font-size: 23px;
+    }
+
+    .user-badge {
+        font-size: 12px;
+    }
+
+    .stat-card {
+        padding: 18px;
+    }
+}
+</style>
+</head>
+
+<body style="visibility:hidden">
+<div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">CAPITA<span>XIO</span></div>
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav class="nav">
+            <a href="dashboard.html">▦ &nbsp; Dashboard</a>
+            <a href="deposit-history.html">↗ &nbsp; Deposit History</a>
+            <a href="withdraw-history.html" class="active">↙ &nbsp; Withdraw History</a>
+            <a href="transactions.html">⇄ &nbsp; Transactions</a>
+            <a href="team.html">♧ &nbsp; My Team</a>
+            <a href="app-download.html">↓ &nbsp; App Download</a>
+            <a href="verify.html">✓ &nbsp; Verify</a>
+            <a href="profile.html">♙ &nbsp; Profile Setting</a>
+            <a href="password-change.html">⚿ &nbsp; Password Change</a>
+            <a href="index.html" id="logoutLink">⇥ &nbsp; Logout</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div style="display:flex;align-items:center;gap:13px;">
+                <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+                <div>
+                    <h2>Withdraw History</h2>
+                    <p>Review your withdrawal records</p>
+                </div>
+            </div>
+
+            <div class="user-badge">Account: <span id="accountName">My Account</span></div>
+        </header>
+
+        <section class="page-heading">
+            <h1>Withdrawal History</h1>
+            <p>Check the status and details of your previous withdrawal requests.</p>
+        </section>
+
+        <section class="stats">
+            <div class="stat-card">
+                <p>Total Withdrawals</p>
+                <h3 id="totalCount">—</h3>
+            </div>
+
+            <div class="stat-card">
+                <p>Completed Requests</p>
+                <h3 id="completedCount">—</h3>
+            </div>
+
+            <div class="stat-card">
+                <p>Pending Requests</p>
+                <h3 id="pendingCount">—</h3>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h3>Withdrawal Records</h3>
+                <p>Search and filter your withdrawal history.</p>
+            </div>
+
+            <div class="filters">
+                <input
+                    type="search"
+                    id="searchInput"
+                    autocomplete="off"
+                    placeholder="Search by request ID or method..."
+                    aria-label="Search withdrawals"
+                >
+
+                <select id="statusFilter" autocomplete="off" aria-label="Filter by status">
+                    <option value="all">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Date</th>
+                            <th>Method</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="withdrawTable"></tbody>
+                </table>
+            </div>
+
+            <div class="empty" id="emptyState">
+                <div class="empty-icon">↙</div>
+                <h3 id="emptyTitle">Loading...</h3>
+                <p id="emptyText"></p>
+            </div>
+        </section>
+
+        <div class="notice" id="notice">
+            <strong>Note:</strong> Ye aap ki withdrawal requests ke asli records hain.
+            "Completed" ka matlab hai ke admin ne request approve kar di hai.
+        </div>
+    </main>
+</div>
+
+<script>
+const SUPABASE_URL = "https://zwffgoenruzcctkyptjg.supabase.co";
+const SUPABASE_KEY = "sb_publishable_6qL9pLwCjdfLAt6ftaSSTQ_SvWff4Ar";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const LOGIN_PAGE = "index.html";
+
+const tableBody = document.getElementById("withdrawTable");
+const emptyState = document.getElementById("emptyState");
+const emptyTitle = document.getElementById("emptyTitle");
+const emptyText = document.getElementById("emptyText");
+const searchInput = document.getElementById("searchInput");
+const statusFilter = document.getElementById("statusFilter");
+
+let withdrawals = [];
+
+function money(value) {
+    return "PKR " + Number(value || 0).toLocaleString("en-PK");
+}
+
+function formatDate(value) {
+    if (!value) return "—";
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? "—" : d.toISOString().slice(0, 10);
+}
+
+function shortId(id) {
+    const t = String(id || "");
+    return t.length > 8 ? t.slice(0, 8).toUpperCase() : t;
+}
+
+// Database ka "approved" is page par "Completed" kehlata hai
+function displayStatus(value) {
+    const s = String(value || "pending").toLowerCase();
+    if (s === "approved") return "Completed";
+    if (s === "rejected") return "Rejected";
+    return "Pending";
+}
+
+function renderWithdrawals() {
+    const searchText = searchInput.value.trim().toLowerCase();
+    const selectedStatus = statusFilter.value;
+
+    const filtered = withdrawals.filter(item => {
+        const matchesSearch =
+            String(item.id).toLowerCase().includes(searchText) ||
+            String(item.payment_method || "").toLowerCase().includes(searchText);
+
+        const matchesStatus =
+            selectedStatus === "all" || displayStatus(item.status) === selectedStatus;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    tableBody.textContent = "";
+
+    filtered.forEach(item => {
+        const row = document.createElement("tr");
+
+        const idCell = document.createElement("td");
+        idCell.textContent = shortId(item.id);
+
+        const dateCell = document.createElement("td");
+        dateCell.textContent = formatDate(item.created_at);
+
+        const methodCell = document.createElement("td");
+        methodCell.textContent = item.payment_method || "—";
+
+        const amountCell = document.createElement("td");
+        amountCell.textContent = money(item.amount);
+
+        const statusCell = document.createElement("td");
+        const statusBadge = document.createElement("span");
+        const shown = displayStatus(item.status);
+        statusBadge.className = "status " + shown.toLowerCase();
+        statusBadge.textContent = shown;
+        statusCell.appendChild(statusBadge);
+
+        [idCell, dateCell, methodCell, amountCell, statusCell]
+            .forEach(cell => row.appendChild(cell));
+
+        tableBody.appendChild(row);
+    });
+
+    if (filtered.length === 0) {
+        emptyTitle.textContent = "No withdrawal records found";
+        emptyText.textContent = withdrawals.length
+            ? "Koi matching record nahi mila."
+            : "Abhi aap ne koi withdrawal request nahi bheji.";
+    }
+    emptyState.style.display = filtered.length ? "none" : "block";
+}
+
+function updateSummary() {
+    document.getElementById("totalCount").textContent = withdrawals.length;
+    document.getElementById("completedCount").textContent =
+        withdrawals.filter(item => displayStatus(item.status) === "Completed").length;
+    document.getElementById("pendingCount").textContent =
+        withdrawals.filter(item => displayStatus(item.status) === "Pending").length;
+}
+
+// ---------- Login aur profile ----------
+async function loadProfile(user) {
+    const cols = "id, full_name, status";
+
+    let { data: profile, error } = await db
+        .from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+    if (error) throw error;
+
+    if (!profile) {
+        const meta = user.user_metadata || {};
+        const { error: rpcError } = await db.rpc("complete_signup", {
+            p_full_name: meta.full_name || "",
+            p_mobile: meta.mobile || "",
+            p_ref: meta.ref || ""
+        });
+        if (rpcError) throw rpcError;
+
+        const again = await db.from("users").select(cols).eq("auth_user_id", user.id).maybeSingle();
+        if (again.error) throw again.error;
+        profile = again.data;
+    }
+
+    return profile;
+}
+
+async function guard() {
+    const { data: s } = await db.auth.getSession();
+    if (!s.session) { window.location.replace(LOGIN_PAGE); return null; }
+
+    let profile;
+    try {
+        profile = await loadProfile(s.session.user);
+    } catch (err) {
+        console.error(err);
+        await db.auth.signOut();
+        window.location.replace(LOGIN_PAGE);
+        return null;
+    }
+
+    if (!profile || String(profile.status || "").toLowerCase() === "banned") {
+        await db.auth.signOut();
+        window.location.replace(LOGIN_PAGE);
+        return null;
+    }
+
+    document.body.style.visibility = "visible";
+    return profile;
+}
+
+async function loadWithdrawals() {
+    const { data, error } = await db
+        .from("withdrawals")
+        .select("id, amount, payment_method, status, created_at")
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+    if (error) {
+        const n = document.getElementById("notice");
+        n.textContent = "Withdrawals load nahi huay: " + error.message;
+        n.classList.add("error");
+        emptyTitle.textContent = "Records load nahi ho sakay";
+        emptyText.textContent = "";
+        return;
+    }
+
+    withdrawals = data || [];
+    updateSummary();
+    renderWithdrawals();
+}
+
+searchInput.addEventListener("input", renderWithdrawals);
+statusFilter.addEventListener("change", renderWithdrawals);
+
+document.getElementById("menuToggle").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("open");
+});
+
+document.getElementById("logoutLink").addEventListener("click", async event => {
+    event.preventDefault();
+    await db.auth.signOut();
+    window.location.href = LOGIN_PAGE;
+});
+
+guard().then(profile => {
+    if (!profile) return;
+    document.getElementById("accountName").textContent = profile.full_name || "My Account";
+    loadWithdrawals();
+});
+</script>
+</body>
+</html>

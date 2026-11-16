@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b171b">
+  <title>Capitaxio | Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0b171b;
+      --panel: #13252c;
+      --panel-light: #1b323b;
+      --green: #a5df43;
+      --text: #f4f7fa;
+      --muted: #9aadb5;
+      --border: #304750;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(ellipse at top, #1b3834 0%, transparent 48%), var(--bg);
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+    }
+
+    .login-wrapper { width: 100%; max-width: 430px; }
+    .brand { text-align: center; margin-bottom: 28px; }
+
+    .brand-icon {
+      width: 66px; height: 66px; margin: 0 auto 14px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #b7f45d, #76ad23);
+      color: #102019; font-size: 30px; font-weight: 900;
+      box-shadow: 0 0 35px #a5df4325;
+    }
+
+    .brand h1 { font-size: 32px; letter-spacing: 1px; }
+    .brand h1 span { color: var(--green); }
+    .brand p { margin-top: 9px; color: var(--muted); font-size: 14px; }
+
+    .login-card {
+      padding: 30px;
+      background: rgba(19, 37, 44, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: 0 20px 70px #00000035;
+    }
+
+    .card-heading { margin-bottom: 26px; }
+    .card-heading h2 { font-size: 24px; margin-bottom: 9px; }
+    .card-heading p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    .form-group { margin-bottom: 19px; }
+    label { display: block; margin-bottom: 9px; font-size: 14px; font-weight: 600; }
+
+    input {
+      width: 100%; padding: 15px;
+      border: 1px solid var(--border); border-radius: 11px;
+      background: #0d1c22; color: var(--text);
+      font-size: 15px; outline: none; transition: border-color .2s;
+    }
+
+    input:focus { border-color: var(--green); }
+    input::placeholder { color: #71858d; }
+
+    .password-row { display: flex; align-items: center; gap: 8px; }
+    .password-row input { flex: 1; min-width: 0; }
+
+    .show-password {
+      padding: 13px 10px; color: var(--green);
+      background: var(--panel-light);
+      border: 1px solid var(--border); border-radius: 9px; cursor: pointer;
+    }
+
+    .forgot-row { text-align: right; margin-top: -5px; margin-bottom: 22px; }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .forgot-row a { font-size: 13px; }
+
+    .submit-btn {
+      width: 100%; padding: 16px; border: none; border-radius: 11px;
+      background: var(--green); color: #13210e;
+      font-size: 16px; font-weight: 800; cursor: pointer;
+      transition: transform .2s, background .2s;
+    }
+
+    .submit-btn:hover { background: #baf66a; transform: translateY(-1px); }
+    .submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    .message { margin-top: 15px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+
+    .register-row {
+      padding-top: 23px; margin-top: 23px;
+      border-top: 1px solid var(--border);
+      text-align: center; color: var(--muted);
+      font-size: 14px; line-height: 1.8;
+    }
+
+    .register-row a { font-weight: bold; }
+
+    .security-note {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; margin-top: 23px; color: var(--muted); font-size: 12px;
+    }
+
+    .security-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; }
+    footer { text-align: center; margin-top: 24px; color: #72858d; font-size: 12px; }
+
+    @media (max-width: 420px) {
+      body { padding: 16px; }
+      .login-card { padding: 23px 19px; }
+      .brand h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="login-wrapper">
+
+    <header class="brand">
+      <div class="brand-icon" aria-hidden="true">C</div>
+      <h1>Capita<span>xio</span></h1>
+      <p>Your account, all in one place.</p>
+    </header>
+
+    <section class="login-card">
+      <div class="card-heading">
+        <h2>Welcome back</h2>
+        <p>Sign in to access your Capitaxio account.</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-row">
+            <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required>
+            <button class="show-password" type="button" id="togglePassword" aria-label="Show password">Show</button>
+          </div>
+        </div>
+
+        <div class="forgot-row">
+          <a href="forgot-password.html">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Sign In →</button>
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+      </form>
+
+      <div class="register-row">
+        Don't have an account?<br>
+        <a href="register.html">Create your account →</a>
+      </div>
+    </section>
+
+    <div class="security-note">
+      <span class="security-dot"></span>
+      Secure account access
+    </div>
+
+    <footer>
+      &copy; 2026 Capitaxio. All rights reserved.
+    </footer>
+
+  </main>
+
+  <script>
+    const SUPABASE_URL = "https://zwffgoenruzcctkyptjg.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_6qL9pLwCjdfLAt6ftaSSTQ_SvWff4Ar";
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Login ke baad user kis page par jaye
+    const DASHBOARD_PAGE = "dashboard.html";
+
+    const passwordInput = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    const loginForm = document.getElementById("loginForm");
+    const message = document.getElementById("message");
+    const submitBtn = document.getElementById("submitBtn");
+
+    togglePassword.addEventListener("click", function () {
+      const isHidden = passwordInput.type === "password";
+
+      passwordInput.type = isHidden ? "text" : "password";
+      togglePassword.textContent = isHidden ? "Hide" : "Show";
+      togglePassword.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+    });
+
+    function showMessage(text, isError) {
+      message.style.color = isError ? "#ff9b9b" : "#a5df43";
+      message.textContent = text;
+    }
+
+    // Profile banane ka kaam database ka safe function (complete_signup) karta hai
+    async function ensureProfile(user) {
+      const meta = user.user_metadata || {};
+
+      const { error } = await db.rpc("complete_signup", {
+        p_full_name: meta.full_name || "",
+        p_mobile: meta.mobile || "",
+        p_ref: meta.ref || ""
+      });
+      if (error) throw error;
+
+      const { data: profile, error: profileError } = await db
+        .from("users")
+        .select("id, status")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+      return profile || { status: "active" };
+    }
+
+    loginForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = passwordInput.value;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Signing in...";
+      showMessage("", false);
+
+      try {
+        const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+        if (error || !data.user) {
+          const text = String((error && error.message) || "").toLowerCase();
+          if (text.includes("confirm")) {
+            showMessage("Pehle apni email confirm karein (inbox ya spam check karein).", true);
+          } else {
+            showMessage("Email ya password ghalat hai.", true);
+          }
+          return;
+        }
+
+        const profile = await ensureProfile(data.user);
+
+        if (String(profile.status || "").toLowerCase() === "banned") {
+          await db.auth.signOut();
+          showMessage("Ye account band kar diya gaya hai. Support se rabta karein.", true);
+          return;
+        }
+
+        showMessage("Login kamyab. Dashboard khul raha hai...", false);
+        window.location.href = DASHBOARD_PAGE;
+      } catch (err) {
+        console.error(err);
+        await db.auth.signOut();
+        showMessage("Login mukammal nahi ho saka: " + err.message, true);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Sign In →";
+      }
+    });
+  </script>
+</body>
+</html>
